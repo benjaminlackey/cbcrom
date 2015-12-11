@@ -360,6 +360,7 @@ def plot_time_series_list(waveform_list, real=True, imag=False, mag=True, length
 
 
 def compare_two_waveforms(h1, h2, mag=None, length=None,
+                          remove_start_phase=True,
                           xlabel=r'$tc^3/GM$', ylabel_wave=r'$(c^2 d /GM) h$',
                           ylabel_amp=r'$A_2/A_1 - 1$',
                           ylabel_phase=r'$\Phi_2 - \Phi_1$',
@@ -368,8 +369,8 @@ def compare_two_waveforms(h1, h2, mag=None, length=None,
     """
     # Get amplitude and phase of each waveform
     # Don't zero out the starting phase
-    amp1, phase1 = amp_phase_from_complex(h1, remove_start_phase=False)
-    amp2, phase2 = amp_phase_from_complex(h2, remove_start_phase=False)
+    amp1, phase1 = amp_phase_from_complex(h1, remove_start_phase=remove_start_phase)
+    amp2, phase2 = amp_phase_from_complex(h2, remove_start_phase=remove_start_phase)
     
     # Get time of maximum
     max, maxi_1 = h1.abs_max_loc()

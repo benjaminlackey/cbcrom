@@ -377,7 +377,7 @@ def plot_time_domain_waveform_difference(fig, h1, h2, imag=False, mag=False,
     
     # Phase plot
     axes = fig.add_subplot(313)
-    error = h1.amp - h2.amp
+    error = h1.phase - h2.phase
     axes.plot(h1.time, error, color='b', ls='-', lw=1)
     axes.plot([h1.time[0], h1.time[-1]], [0.0, 0.0], color='k', ls=':', lw=1)
     
