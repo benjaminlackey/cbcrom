@@ -359,7 +359,7 @@ def plot_time_series_list(waveform_list, real=True, imag=False, mag=True, length
 
 
 
-def compare_two_waveforms(h1, h2, mag=None, length=None,
+def compare_two_waveforms(fig, h1, h2, mag=None, xlim=None,
                           remove_start_phase=True,
                           xlabel=r'$tc^3/GM$', ylabel_wave=r'$(c^2 d /GM) h$',
                           ylabel_amp=r'$A_2/A_1 - 1$',
@@ -378,23 +378,16 @@ def compare_two_waveforms(h1, h2, mag=None, length=None,
     maxi = min(maxi_1, maxi_2)
     tmax = h1.sample_times[maxi]
     
-    if length:
-        tstart = tmax - length
-    else:
-        # Can't use start_time because its type is lal.lal.LIGOTimeGPS instead of numpy.float64.
-        tstart = h1.sample_times[0]
-    
-    tend = tstart + 1.1*(tmax-tstart)
-    
     # Plot waveform
-    fig = plt.figure(figsize=(16, 6))
     axes = fig.add_subplot(3, 1, 1)
     axes.plot(h1.sample_times, h1.numpy().real, color='b', ls='-', lw=1, label=labels[0])
     axes.plot(h2.sample_times, h2.numpy().real, color='r', ls='--', lw=1, label=labels[1])
     if mag:
         axes.plot(h1.sample_times, np.abs(h1.numpy()), color='b', ls='-', lw=2)
         axes.plot(h2.sample_times, np.abs(h2.numpy()), color='r', ls='-', lw=2)
-    axes.set_xlim([tstart, tend])
+    axes.axhline(y=0.0, color='k', ls=':')
+    
+    if xlim is not None: axes.set_xlim(xlim)
     axes.set_ylabel(ylabel_wave, fontsize=16)
     axes.set_xticklabels(axes.get_xticks(), fontsize=14)
     axes.set_yticklabels(axes.get_yticks(), fontsize=14)
@@ -407,8 +400,9 @@ def compare_two_waveforms(h1, h2, mag=None, length=None,
     # Plot relative amplitude error
     axes = fig.add_subplot(3, 1, 2)
     axes.plot(amp1.sample_times[:maxi], amp2.numpy()[:maxi]/amp1.numpy()[:maxi]-1, color='b', ls='-', lw=1)
-    axes.plot([tstart, tend], [0.0, 0.0], color='k', ls=':', lw=1)
-    axes.set_xlim([tstart, tend])
+    axes.axhline(y=0.0, color='k', ls=':')
+    
+    if xlim is not None: axes.set_xlim(xlim)
     axes.set_ylabel(ylabel_amp, fontsize=16)
     axes.set_xticklabels(axes.get_xticks(), fontsize=14)
     axes.set_yticklabels(axes.get_yticks(), fontsize=14)
@@ -420,8 +414,9 @@ def compare_two_waveforms(h1, h2, mag=None, length=None,
     # Plot phase error
     axes = fig.add_subplot(3, 1, 3)
     axes.plot(phase1.sample_times[:maxi], phase2.numpy()[:maxi] - phase1.numpy()[:maxi], color='b', ls='-', lw=1)
-    axes.plot([tstart, tend], [0.0, 0.0], color='k', ls=':', lw=1)
-    axes.set_xlim([tstart, tend])
+    axes.axhline(y=0.0, color='k', ls=':')
+
+    if xlim is not None: axes.set_xlim(xlim)
     axes.set_xlabel(xlabel, fontsize=16)
     axes.set_ylabel(ylabel_phase, fontsize=16)
     axes.set_xticklabels(axes.get_xticks(), fontsize=14)
