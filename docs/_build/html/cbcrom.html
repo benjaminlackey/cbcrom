@@ -1,0 +1,819 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>cbcrom package &mdash; cbcrom  documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="cbcrom  documentation" href="index.html"/>
+        <link rel="prev" title="Welcome to cbcrom’s documentation!" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> cbcrom
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="">cbcrom package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-cbcrom.chebyshev">cbcrom.chebyshev module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cbcrom-diagnostics-module">cbcrom.diagnostics module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-cbcrom.empiricalinterpolation">cbcrom.empiricalinterpolation module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cbcrom-eobtrainingset-module">cbcrom.eobtrainingset module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cbcrom-frequencyseriesutils-module">cbcrom.frequencyseriesutils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-cbcrom.functionapproximation">cbcrom.functionapproximation module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-cbcrom.greedy">cbcrom.greedy module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cbcrom-taylort4trainingset-module">cbcrom.taylort4trainingset module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cbcrom-timedomainrom-module">cbcrom.timedomainrom module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cbcrom-timedomainwaveform-module">cbcrom.timedomainwaveform module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cbcrom-timeseriesrom-module">cbcrom.timeseriesrom module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cbcrom-timeseriesset-module">cbcrom.timeseriesset module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cbcrom-timeseriesutils-module">cbcrom.timeseriesutils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-cbcrom">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">cbcrom</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>cbcrom package</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/cbcrom.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="cbcrom-package">
+<h1>cbcrom package<a class="headerlink" href="#cbcrom-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-cbcrom.chebyshev">
+<span id="cbcrom-chebyshev-module"></span><h2>cbcrom.chebyshev module<a class="headerlink" href="#module-cbcrom.chebyshev" title="Permalink to this headline">¶</a></h2>
+<p>Utilities for Chebyshev interpolation.</p>
+<dl class="class">
+<dt id="cbcrom.chebyshev.ChebyshevApproximation">
+<em class="property">class </em><code class="descclassname">cbcrom.chebyshev.</code><code class="descname">ChebyshevApproximation</code><a class="reference internal" href="_modules/cbcrom/chebyshev.html#ChebyshevApproximation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cbcrom.chebyshev.ChebyshevApproximation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Methods for approximating [1, 2, 3]-d functions with Chebyshev polynomials.</p>
+<dl class="docutils">
+<dt>shape <span class="classifier-delimiter">:</span> <span class="classifier">List of length Ndim</span></dt>
+<dd>Number of points in each dimension</dd>
+<dt>low <span class="classifier-delimiter">:</span> <span class="classifier">List of length Ndim</span></dt>
+<dd>Lower boundary of grid</dd>
+<dt>high <span class="classifier-delimiter">:</span> <span class="classifier">List of length Ndim</span></dt>
+<dd>Upper boundary of grid</dd>
+<dt>Ndim <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>Number of dimensions</dd>
+<dt>nodes <span class="classifier-delimiter">:</span> <span class="classifier">Ndim length list of arrays containing the nodes in each dimension.</span></dt>
+<dd>Coordinates of the Lobatto nodes</dd>
+<dt>f_grid <span class="classifier-delimiter">:</span> <span class="classifier">Array of shape shape.</span></dt>
+<dd>Function values at the grid of Lobatto nodes.</dd>
+<dt>coefficients <span class="classifier-delimiter">:</span> <span class="classifier">Array of shape shape.</span></dt>
+<dd>Coefficients of the Chebyshev expansion.</dd>
+</dl>
+<dl class="method">
+<dt id="cbcrom.chebyshev.ChebyshevApproximation.calculate_chebyshev_coefficients">
+<code class="descname">calculate_chebyshev_coefficients</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/cbcrom/chebyshev.html#ChebyshevApproximation.calculate_chebyshev_coefficients"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cbcrom.chebyshev.ChebyshevApproximation.calculate_chebyshev_coefficients" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the coefficients in the Chebyshev expansion.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cbcrom.chebyshev.ChebyshevApproximation.evaluate_function_at_lobatto_nodes">
+<code class="descname">evaluate_function_at_lobatto_nodes</code><span class="sig-paren">(</span><em>func</em>, <em>shape</em>, <em>low</em>, <em>high</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cbcrom/chebyshev.html#ChebyshevApproximation.evaluate_function_at_lobatto_nodes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cbcrom.chebyshev.ChebyshevApproximation.evaluate_function_at_lobatto_nodes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluate a function on a grid given by the Lobatto nodes.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cbcrom.chebyshev.ChebyshevApproximation.interpolation">
+<code class="descname">interpolation</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cbcrom/chebyshev.html#ChebyshevApproximation.interpolation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cbcrom.chebyshev.ChebyshevApproximation.interpolation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interpolate the function at a specific point.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cbcrom.chebyshev.ChebyshevApproximation.lobatto_nodes">
+<code class="descname">lobatto_nodes</code><span class="sig-paren">(</span><em>shape</em>, <em>low</em>, <em>high</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cbcrom/chebyshev.html#ChebyshevApproximation.lobatto_nodes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cbcrom.chebyshev.ChebyshevApproximation.lobatto_nodes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a list of arrays for the Lobatto nodes in each dimension.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="cbcrom.chebyshev.chebyshev_coefficient3d_list_generator">
+<code class="descclassname">cbcrom.chebyshev.</code><code class="descname">chebyshev_coefficient3d_list_generator</code><span class="sig-paren">(</span><em>f_ijk_list</em>, <em>params_min</em>, <em>params_max</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cbcrom/chebyshev.html#chebyshev_coefficient3d_list_generator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cbcrom.chebyshev.chebyshev_coefficient3d_list_generator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate Chebyshev coefficients to approximate the function (amp or phase) at the empirical_nodes T_i.</p>
+<dl class="docutils">
+<dt>f_ijk_list <span class="classifier-delimiter">:</span> <span class="classifier">list of N-d arrays</span></dt>
+<dd>Function values on the Chebyshev-Gauss-Lobatto grid.</dd>
+<dt>params_min <span class="classifier-delimiter">:</span> <span class="classifier">1d array of length 3</span></dt>
+<dd>Minimum value of each parameter.</dd>
+<dt>params_max <span class="classifier-delimiter">:</span> <span class="classifier">1d array of length 3</span></dt>
+<dd>Maximum value of each parameter.</dd>
+</dl>
+<dl class="docutils">
+<dt>coefficient_list <span class="classifier-delimiter">:</span> <span class="classifier">List of N-d numpy arrays</span></dt>
+<dd>The chebyshev coefficients corresponding to a list of functions.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cbcrom.chebyshev.chebyshev_interpolation">
+<code class="descclassname">cbcrom.chebyshev.</code><code class="descname">chebyshev_interpolation</code><span class="sig-paren">(</span><em>x</em>, <em>c_l_array</em>, <em>xlow</em>, <em>xhigh</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cbcrom/chebyshev.html#chebyshev_interpolation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cbcrom.chebyshev.chebyshev_interpolation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interpolate f(x) given its expansion in terms of Chebyshev polynomials T_l(x).</p>
+<p>x : float
+c_l_array : 1d array
+Coefficients of the Chebyshev polynomials
+xlow : float
+Lower bound of the interval.
+xhigh : float
+Upper bound of the interval.</p>
+<p>f(x) : float
+Function evaluated at x.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="cbcrom.chebyshev.chebyshev_interpolation2d">
+<code class="descclassname">cbcrom.chebyshev.</code><code class="descname">chebyshev_interpolation2d</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>c_lm_array</em>, <em>xlow</em>, <em>xhigh</em>, <em>ylow</em>, <em>yhigh</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cbcrom/chebyshev.html#chebyshev_interpolation2d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cbcrom.chebyshev.chebyshev_interpolation2d" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interpolate f(x, y) given its expansion in terms of Chebyshev polynomials T_l(x)T_m(y).</p>
+<p>x, y : floats
+c_lm_array : 2d array
+Coefficients of the Chebyshev polynomials
+xlow, ylow : floats
+Lower bounds of the intervals.
+xhigh, yhigh : floats
+Upper bounds of the intervals.</p>
+<p>f(x, y) : float
+Function evaluated at x, y.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="cbcrom.chebyshev.chebyshev_interpolation3d">
+<code class="descclassname">cbcrom.chebyshev.</code><code class="descname">chebyshev_interpolation3d</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>z</em>, <em>c_lmn_array</em>, <em>xlow</em>, <em>xhigh</em>, <em>ylow</em>, <em>yhigh</em>, <em>zlow</em>, <em>zhigh</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cbcrom/chebyshev.html#chebyshev_interpolation3d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cbcrom.chebyshev.chebyshev_interpolation3d" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interpolate f(x, y, z) given its expansion in terms of Chebyshev polynomials T_l(x)T_m(y)T_n(z).</p>
+<p>x, y, z : floats
+c_lmn_array : 3d array
+Coefficients of the Chebyshev polynomials
+xlow, ylow, zlow : floats
+Lower bounds of the intervals.
+xhigh, yhigh, zhigh : floats
+Upper bounds of the intervals.</p>
+<p>f(x, y, z) : float
+Function evaluated at x, y, z.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="cbcrom.chebyshev.chebyshev_interpolation3d_generator">
+<code class="descclassname">cbcrom.chebyshev.</code><code class="descname">chebyshev_interpolation3d_generator</code><span class="sig-paren">(</span><em>coefficients</em>, <em>params_min</em>, <em>params_max</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cbcrom/chebyshev.html#chebyshev_interpolation3d_generator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cbcrom.chebyshev.chebyshev_interpolation3d_generator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a function of N parameters that interpolates a uniformly spaced Nd array.</p>
+<dl class="docutils">
+<dt>coefficients <span class="classifier-delimiter">:</span> <span class="classifier">N-d numpy array</span></dt>
+<dd>The chebyshev coefficients corresponding to a list of functions.</dd>
+<dt>params_min <span class="classifier-delimiter">:</span> <span class="classifier">1d array of length 3</span></dt>
+<dd>Minimum value of each parameter.</dd>
+<dt>params_max <span class="classifier-delimiter">:</span> <span class="classifier">1d array of length 3</span></dt>
+<dd>Maximum value of each parameter.</dd>
+</dl>
+<p>function_list : list of function(params)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="cbcrom.chebyshev.chebyshev_lobatto_nodes">
+<code class="descclassname">cbcrom.chebyshev.</code><code class="descname">chebyshev_lobatto_nodes</code><span class="sig-paren">(</span><em>Nnodes</em>, <em>low=-1.0</em>, <em>high=1.0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cbcrom/chebyshev.html#chebyshev_lobatto_nodes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cbcrom.chebyshev.chebyshev_lobatto_nodes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find the Chebyshev-Lobatto nodes in the interval [low, high].</p>
+<dl class="docutils">
+<dt>Nnodes <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>Number of nodes</dd>
+<dt>low <span class="classifier-delimiter">:</span> <span class="classifier">{float, -1.0} </span></dt>
+<dd>Lower bound of the interval.</dd>
+<dt>high <span class="classifier-delimiter">:</span> <span class="classifier">{float, 1.0}</span></dt>
+<dd>Upper bound of the invterval</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cbcrom.chebyshev.chebyshev_polynomial">
+<code class="descclassname">cbcrom.chebyshev.</code><code class="descname">chebyshev_polynomial</code><span class="sig-paren">(</span><em>n</em>, <em>x</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cbcrom/chebyshev.html#chebyshev_polynomial"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cbcrom.chebyshev.chebyshev_polynomial" title="Permalink to this definition">¶</a></dt>
+<dd><p>n-th order Chebyshev polynomial T_n(x) of the first kind.</p>
+<dl class="docutils">
+<dt>n <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>Order of the polynomial &gt;= 0.</dd>
+<dt>x <span class="classifier-delimiter">:</span> <span class="classifier">float </span></dt>
+<dd>Must by evaluated in the interval [-1, 1].</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cbcrom.chebyshev.fast_chebyshev_transform">
+<code class="descclassname">cbcrom.chebyshev.</code><code class="descname">fast_chebyshev_transform</code><span class="sig-paren">(</span><em>f_k</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cbcrom/chebyshev.html#fast_chebyshev_transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cbcrom.chebyshev.fast_chebyshev_transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the Chebyshev transform of f_k.</p>
+<dl class="docutils">
+<dt>f_k <span class="classifier-delimiter">:</span> <span class="classifier">real numpy array</span></dt>
+<dd>Function evaluated at the Chebyshev-Gauss-Lobatto nodes in interval [-1, 1].</dd>
+</dl>
+<dl class="docutils">
+<dt>b_n <span class="classifier-delimiter">:</span> <span class="classifier">real numpy array</span></dt>
+<dd>Coefficients of the Chebyshev polynomials.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cbcrom.chebyshev.fast_chebyshev_transform_2d">
+<code class="descclassname">cbcrom.chebyshev.</code><code class="descname">fast_chebyshev_transform_2d</code><span class="sig-paren">(</span><em>f_ij</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cbcrom/chebyshev.html#fast_chebyshev_transform_2d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cbcrom.chebyshev.fast_chebyshev_transform_2d" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the coefficients c_lm of the Chebyshev polynomial product T_l(x)T_m(y)
+in the Chebyshev expansion of the function f(x, y).</p>
+<dl class="docutils">
+<dt>f_ij <span class="classifier-delimiter">:</span> <span class="classifier">2d array of floats</span></dt>
+<dd>Value of the function f(x_i, y_j) at the Chebyshev-Lobatto nodes x_i, y_j.</dd>
+</dl>
+<dl class="docutils">
+<dt>c_lmn <span class="classifier-delimiter">:</span> <span class="classifier">2d array of float</span></dt>
+<dd>Coefficients of T_l(x)T_m(y).</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cbcrom.chebyshev.fast_chebyshev_transform_3d">
+<code class="descclassname">cbcrom.chebyshev.</code><code class="descname">fast_chebyshev_transform_3d</code><span class="sig-paren">(</span><em>f_ijk</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cbcrom/chebyshev.html#fast_chebyshev_transform_3d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cbcrom.chebyshev.fast_chebyshev_transform_3d" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the coefficients c_lmn of the Chebyshev polynomial product T_l(x)T_m(y)T_n(z)
+in the Chebyshev expansion of the function f(x, y, z).</p>
+<dl class="docutils">
+<dt>f_ijk <span class="classifier-delimiter">:</span> <span class="classifier">3d array of floats</span></dt>
+<dd>Value of the function f(x_i, y_j, z_k) at the Chebyshev-Lobatto nodes x_i, y_j, z_k.</dd>
+</dl>
+<dl class="docutils">
+<dt>c_lmn <span class="classifier-delimiter">:</span> <span class="classifier">3d array of float</span></dt>
+<dd>Coefficients of T_l(x)T_m(y)T_n(z).</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cbcrom.chebyshev.load_chebyshev_coefficients_list">
+<code class="descclassname">cbcrom.chebyshev.</code><code class="descname">load_chebyshev_coefficients_list</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cbcrom/chebyshev.html#load_chebyshev_coefficients_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cbcrom.chebyshev.load_chebyshev_coefficients_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load a list of N-d coefficient arrays.</p>
+<dl class="docutils">
+<dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>hdf5 filename</dd>
+</dl>
+<dl class="docutils">
+<dt>coefficients_list <span class="classifier-delimiter">:</span> <span class="classifier">List of N-d numpy arrays</span></dt>
+<dd>The chebyshev coefficients corresponding to a list of functions.</dd>
+<dt>params_min <span class="classifier-delimiter">:</span> <span class="classifier">1d array of length N</span></dt>
+<dd>Minimum value of each parameter.</dd>
+<dt>params_max <span class="classifier-delimiter">:</span> <span class="classifier">1d array of length N</span></dt>
+<dd>Maximum value of each parameter.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cbcrom.chebyshev.save_chebyshev_coefficients_list">
+<code class="descclassname">cbcrom.chebyshev.</code><code class="descname">save_chebyshev_coefficients_list</code><span class="sig-paren">(</span><em>filename</em>, <em>coefficients_list</em>, <em>params_min</em>, <em>params_max</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cbcrom/chebyshev.html#save_chebyshev_coefficients_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cbcrom.chebyshev.save_chebyshev_coefficients_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load a list of N-d coefficient arrays.</p>
+<dl class="docutils">
+<dt>filename <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd>hdf5 filename</dd>
+<dt>coefficients_list <span class="classifier-delimiter">:</span> <span class="classifier">List of N-d numpy arrays</span></dt>
+<dd>The chebyshev coefficients corresponding to a list of functions.</dd>
+<dt>params_min <span class="classifier-delimiter">:</span> <span class="classifier">1d array of length N</span></dt>
+<dd>Minimum value of each parameter.</dd>
+<dt>params_max <span class="classifier-delimiter">:</span> <span class="classifier">1d array of length N</span></dt>
+<dd>Maximum value of each parameter.</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="cbcrom-diagnostics-module">
+<h2>cbcrom.diagnostics module<a class="headerlink" href="#cbcrom-diagnostics-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-cbcrom.empiricalinterpolation">
+<span id="cbcrom-empiricalinterpolation-module"></span><h2>cbcrom.empiricalinterpolation module<a class="headerlink" href="#module-cbcrom.empiricalinterpolation" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="cbcrom.empiricalinterpolation.generate_empirical_nodes">
+<code class="descclassname">cbcrom.empiricalinterpolation.</code><code class="descname">generate_empirical_nodes</code><span class="sig-paren">(</span><em>reduced_basis</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cbcrom/empiricalinterpolation.html#generate_empirical_nodes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cbcrom.empiricalinterpolation.generate_empirical_nodes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine the empirical nodes from the reduced basis.</p>
+<dl class="docutils">
+<dt>reduced_basis <span class="classifier-delimiter">:</span> <span class="classifier">List of arraylike objects.</span></dt>
+<dd>The orthonormalized waveforms making up the reduced basis.</dd>
+</dl>
+<dl class="docutils">
+<dt>empirical_node_indices <span class="classifier-delimiter">:</span> <span class="classifier">List of integers</span></dt>
+<dd>Indices for the waveform at the nodes T_i.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cbcrom.empiricalinterpolation.generate_interpolant_list">
+<code class="descclassname">cbcrom.empiricalinterpolation.</code><code class="descname">generate_interpolant_list</code><span class="sig-paren">(</span><em>reduced_basis</em>, <em>empirical_node_indices</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cbcrom/empiricalinterpolation.html#generate_interpolant_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cbcrom.empiricalinterpolation.generate_interpolant_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluate the TimeSeries B_j(t) that gives the empirical interpolant I_m[h](t) = Sum_{j=1}^m B_j(t) h(T_j)
+when the the quantities h(T_j) are known.</p>
+<dl class="docutils">
+<dt>reduced_basis <span class="classifier-delimiter">:</span> <span class="classifier">List of arraylike objects.</span></dt>
+<dd>The orthonormalized waveforms making up the reduced basis.</dd>
+<dt>empirical_node_indices <span class="classifier-delimiter">:</span> <span class="classifier">List of integers</span></dt>
+<dd>Indices corresponding to the nodes [T_0, ..., T_{j-1}].</dd>
+</dl>
+<dl class="docutils">
+<dt>B_j: List of 1d arrays</dt>
+<dd>The interpolating functions</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cbcrom.empiricalinterpolation.generate_new_empirical_node">
+<code class="descclassname">cbcrom.empiricalinterpolation.</code><code class="descname">generate_new_empirical_node</code><span class="sig-paren">(</span><em>reduced_basis</em>, <em>empirical_node_indices</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cbcrom/empiricalinterpolation.html#generate_new_empirical_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cbcrom.empiricalinterpolation.generate_new_empirical_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine the next empirical node from the current empirical nodes and the reduced basis.</p>
+<dl class="docutils">
+<dt>reduced_basis <span class="classifier-delimiter">:</span> <span class="classifier">List of arraylike objects.</span></dt>
+<dd>The orthonormalized waveforms making up the reduced basis.</dd>
+<dt>empirical_node_indices <span class="classifier-delimiter">:</span> <span class="classifier">List of integers</span></dt>
+<dd>Indices corresponding to the nodes [T_0, ..., T_{j-1}].</dd>
+</dl>
+<dl class="docutils">
+<dt>imax <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>Index corresponding to the new node T_j.</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="cbcrom-eobtrainingset-module">
+<h2>cbcrom.eobtrainingset module<a class="headerlink" href="#cbcrom-eobtrainingset-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="cbcrom-frequencyseriesutils-module">
+<h2>cbcrom.frequencyseriesutils module<a class="headerlink" href="#cbcrom-frequencyseriesutils-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-cbcrom.functionapproximation">
+<span id="cbcrom-functionapproximation-module"></span><h2>cbcrom.functionapproximation module<a class="headerlink" href="#module-cbcrom.functionapproximation" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="cbcrom.functionapproximation.amp_function_generator">
+<code class="descclassname">cbcrom.functionapproximation.</code><code class="descname">amp_function_generator</code><span class="sig-paren">(</span><em>param_grid</em>, <em>amp_grid</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cbcrom/functionapproximation.html#amp_function_generator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cbcrom.functionapproximation.amp_function_generator" title="Permalink to this definition">¶</a></dt>
+<dd><p>param_grid : (N+1)d array
+The N Parameter values at each point on the parameter grid.
+amp_grid : Nd array
+Amplitude at each point on the parameter grid.</p>
+<p>amp_function(params) : function
+The amplitude function that passes through the amp_grid data at the points in param_grid.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="cbcrom.functionapproximation.amp_function_generator_from_list">
+<code class="descclassname">cbcrom.functionapproximation.</code><code class="descname">amp_function_generator_from_list</code><span class="sig-paren">(</span><em>param_array</em>, <em>amp_array</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cbcrom/functionapproximation.html#amp_function_generator_from_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cbcrom.functionapproximation.amp_function_generator_from_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a function to fit and/or interpolate the amplitude from a list of values.
+Parameters
+&#8212;&#8212;&#8212;-
+param_array : 2d arraylike
+Array of the parameters at each point in the list.
+amp_array : array
+Amplitude at each point in the list.</p>
+<p>amp_function(params) : function
+The amplitude function.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="cbcrom.functionapproximation.amp_phase_functions_from_list_at_empirical_nodes">
+<code class="descclassname">cbcrom.functionapproximation.</code><code class="descname">amp_phase_functions_from_list_at_empirical_nodes</code><span class="sig-paren">(</span><em>param_array</em>, <em>amp_at_nodes</em>, <em>phase_at_nodes</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cbcrom/functionapproximation.html#amp_phase_functions_from_list_at_empirical_nodes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cbcrom.functionapproximation.amp_phase_functions_from_list_at_empirical_nodes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate interpolating functions for amp and phase at each of the empirical_nodes T_i.</p>
+<p>param_array : 2d arraylike
+Array of the parameters at each point in the list.
+amp_at_nodes : 2d array
+Amplitude at the empirical_nodes for each set of parameters.
+phase_at_nodes : 2d array
+Phase at the empirical_nodes for each set of parameters.</p>
+<p>amp_function_list : List of interpolating functions
+List of interpolating functions for the amplitude at the empirical_nodes.
+phase_function_list : List of arrays
+List of interpolating functions for the phase at the empirical_nodes.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="cbcrom.functionapproximation.amp_phase_functions_from_uniform_grid_at_empirical_nodes">
+<code class="descclassname">cbcrom.functionapproximation.</code><code class="descname">amp_phase_functions_from_uniform_grid_at_empirical_nodes</code><span class="sig-paren">(</span><em>param_grid</em>, <em>amp_at_nodes_grid</em>, <em>phase_at_nodes_grid</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cbcrom/functionapproximation.html#amp_phase_functions_from_uniform_grid_at_empirical_nodes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cbcrom.functionapproximation.amp_phase_functions_from_uniform_grid_at_empirical_nodes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate interpolating functions for amp and phase at each of the empirical_nodes T_i.</p>
+<p>param_grid : (N+1)d array
+The N Parameter values at each point on the parameter grid.
+amp_at_nodes_grid : (N+1)d array
+Amplitude at the empirical_nodes at each point on the parameter grid.
+phase_at_nodes_grid : (N+1)d array
+Phase at the empirical_nodes at each point on the parameter grid.</p>
+<p>amp_function_list : List of interpolating functions
+List of interpolating functions for the amplitude at the empirical_nodes.
+phase_function_list : List of arrays
+List of interpolating functions for the phase at the empirical_nodes.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="cbcrom.functionapproximation.fit_generator">
+<code class="descclassname">cbcrom.functionapproximation.</code><code class="descname">fit_generator</code><span class="sig-paren">(</span><em>param_array</em>, <em>data_array</em>, <em>func</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cbcrom/functionapproximation.html#fit_generator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cbcrom.functionapproximation.fit_generator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a function(params) that fits the data.</p>
+<p>param_array : 2d array
+Parameter values.
+data_array : 1d array
+Function values at the corresponding parameter values.
+func(params, <a href="#id1"><span class="problematic" id="id2">*</span></a>args) : function to use for the fitting
+Params is 1d array of parameters.
+<a href="#id3"><span class="problematic" id="id4">*</span></a>args are the coefficients.</p>
+<p>fit : function(params)
+A function constructed from func using the best fit parameters.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="cbcrom.functionapproximation.phase_function_generator">
+<code class="descclassname">cbcrom.functionapproximation.</code><code class="descname">phase_function_generator</code><span class="sig-paren">(</span><em>param_grid</em>, <em>phase_grid</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cbcrom/functionapproximation.html#phase_function_generator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cbcrom.functionapproximation.phase_function_generator" title="Permalink to this definition">¶</a></dt>
+<dd><p>param_grid : (N+1)d array
+The N Parameter values at each point on the parameter grid.
+phase_grid : Nd array
+phase at each point on the parameter grid.</p>
+<p>phase_function(params) : function
+The phase function that passes through the phase_grid data at the points in param_grid.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="cbcrom.functionapproximation.phase_function_generator_from_list">
+<code class="descclassname">cbcrom.functionapproximation.</code><code class="descname">phase_function_generator_from_list</code><span class="sig-paren">(</span><em>param_array</em>, <em>phase_array</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cbcrom/functionapproximation.html#phase_function_generator_from_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cbcrom.functionapproximation.phase_function_generator_from_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a function to fit and/or interpolate the phase from a list of values.
+Parameters
+&#8212;&#8212;&#8212;-
+param_array : 2d arraylike
+Array of the parameters at each point in the list.
+phase_array : array
+Phase at each point in the list.</p>
+<p>phase_function(params) : function
+The phase function.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="cbcrom.functionapproximation.uniform_grid_interpolation_generator">
+<code class="descclassname">cbcrom.functionapproximation.</code><code class="descname">uniform_grid_interpolation_generator</code><span class="sig-paren">(</span><em>data</em>, <em>xmin</em>, <em>xmax</em>, <em>order=2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cbcrom/functionapproximation.html#uniform_grid_interpolation_generator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cbcrom.functionapproximation.uniform_grid_interpolation_generator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a function of N parameters that interpolates a uniformly spaced Nd array.</p>
+<p>data : Nd array
+Data to interpolate.
+xmin : 1d array of length N
+Minimum value of each parameter.
+xmax : 1d array of length N
+Maximum value of each parameter.</p>
+<p>interp: function(x)
+Interpolating function that takes x
+(1d array of the parameter values at which you want to interpolate the data).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="cbcrom.functionapproximation.unstructured_linear_interpolation_generator">
+<code class="descclassname">cbcrom.functionapproximation.</code><code class="descname">unstructured_linear_interpolation_generator</code><span class="sig-paren">(</span><em>param_array</em>, <em>data_array</em>, <em>nearest_outside=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cbcrom/functionapproximation.html#unstructured_linear_interpolation_generator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cbcrom.functionapproximation.unstructured_linear_interpolation_generator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a linear interpolating function(params) from an unstructured grid.
+This is a wrapper for scipy.interpolate.LinearNDInterpolator.</p>
+<p>param_array : 2d array
+Parameter values.
+data_array : 1d array
+Function values at the corresponding parameter values.
+nearest_outside : {bool, True}
+Do nearest neighor interpolation outside the convex hull if True.
+Return nan if False.</p>
+<p>interp : function(params)
+An inteprolating function.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-cbcrom.greedy">
+<span id="cbcrom-greedy-module"></span><h2>cbcrom.greedy module<a class="headerlink" href="#module-cbcrom.greedy" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="cbcrom.greedy.ReducedBasis">
+<em class="property">class </em><code class="descclassname">cbcrom.greedy.</code><code class="descname">ReducedBasis</code><span class="sig-paren">(</span><em>add_func</em>, <em>subtract_func</em>, <em>scalar_multiply_func</em>, <em>inner_product_func</em>, <em>get_waveform</em>, <em>ts_params</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cbcrom/greedy.html#ReducedBasis"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cbcrom.greedy.ReducedBasis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Functions for generating a set of reduced basis waveforms with the greedy algorithm.</p>
+<p>add_func
+subtract_func
+scalar_multiply_func
+inner_product_func
+get_waveform
+ts_params
+norms
+inner_products
+sigma_list
+rb
+rb_indices
+rb_params</p>
+<dl class="method">
+<dt id="cbcrom.greedy.ReducedBasis.calculate_norms">
+<code class="descname">calculate_norms</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/cbcrom/greedy.html#ReducedBasis.calculate_norms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cbcrom.greedy.ReducedBasis.calculate_norms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the norms for each waveform in the training set</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cbcrom.greedy.ReducedBasis.generate_new_basis_from_specific_waveform">
+<code class="descname">generate_new_basis_from_specific_waveform</code><span class="sig-paren">(</span><em>ts_index</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cbcrom/greedy.html#ReducedBasis.generate_new_basis_from_specific_waveform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cbcrom.greedy.ReducedBasis.generate_new_basis_from_specific_waveform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Force the next RB waveform to be constructed from the waveform
+in the training set with the index ts_index.</p>
+<p>Also, evaluates the inner product for the remaining training set waveforms,
+since you will need them for later RB waveforms.</p>
+<dl class="docutils">
+<dt>ts_index <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>Index of the training set waveform you want to use.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="cbcrom.greedy.ReducedBasis.generate_new_basis_from_training_set">
+<code class="descname">generate_new_basis_from_training_set</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/cbcrom/greedy.html#ReducedBasis.generate_new_basis_from_training_set"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cbcrom.greedy.ReducedBasis.generate_new_basis_from_training_set" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate the next RB waveform from the most orthogonal member of the training set.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cbcrom.greedy.ReducedBasis.generate_reduced_basis">
+<code class="descname">generate_reduced_basis</code><span class="sig-paren">(</span><em>epsilon</em>, <em>ts_istart=0</em>, <em>Nbases=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cbcrom/greedy.html#ReducedBasis.generate_reduced_basis"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cbcrom.greedy.ReducedBasis.generate_reduced_basis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate an orthonormal set of waveforms with the greedy algorithm.</p>
+<dl class="docutils">
+<dt>epsilon <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd>The tolerance. Should be greater than 1.0e-14.</dd>
+<dt>ts_istart <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>Index for the first RB waveform. 0th waveform in training set by default.</dd>
+<dt>Nbases <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>Maximum number of bases to generate.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="cbcrom.greedy.ReducedBasis.generate_reduced_basis_start_with_set">
+<code class="descname">generate_reduced_basis_start_with_set</code><span class="sig-paren">(</span><em>epsilon</em>, <em>ts_initial_list</em>, <em>Nbases=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cbcrom/greedy.html#ReducedBasis.generate_reduced_basis_start_with_set"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cbcrom.greedy.ReducedBasis.generate_reduced_basis_start_with_set" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate an orthonormal set of waveforms with the greedy algorithm.
+the first waveforms in the RB are constructed from ts_initial_list</p>
+<dl class="docutils">
+<dt>epsilon <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd>The tolerance. Should be greater than 1.0e-14.</dd>
+<dt>ts_initial_list <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>Indices of the waveforms required to be in the RB.</dd>
+<dt>Nbases <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>Maximum number of bases to generate.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="cbcrom.greedy.ReducedBasis.normalize_waveform">
+<code class="descname">normalize_waveform</code><span class="sig-paren">(</span><em>h</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cbcrom/greedy.html#ReducedBasis.normalize_waveform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cbcrom.greedy.ReducedBasis.normalize_waveform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Normalize the waveform h.</p>
+<p>norm : float
+h_norm : The normalized waveform.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cbcrom.greedy.ReducedBasis.set_initial_rb">
+<code class="descname">set_initial_rb</code><span class="sig-paren">(</span><em>ts_index</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cbcrom/greedy.html#ReducedBasis.set_initial_rb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cbcrom.greedy.ReducedBasis.set_initial_rb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the initial RB waveform to be the one from the training set
+with index ts_index.</p>
+<dl class="docutils">
+<dt>ts_istart <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>Index for the first RB waveform. 0th waveform in training set by default.</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="cbcrom.greedy.add_basis_with_iterated_modified_gram_schmidt">
+<code class="descclassname">cbcrom.greedy.</code><code class="descname">add_basis_with_iterated_modified_gram_schmidt</code><span class="sig-paren">(</span><em>h</em>, <em>basis</em>, <em>add</em>, <em>subtract</em>, <em>scalar_multiply</em>, <em>inner_product</em>, <em>a=0.5</em>, <em>max_iter=3</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cbcrom/greedy.html#add_basis_with_iterated_modified_gram_schmidt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cbcrom.greedy.add_basis_with_iterated_modified_gram_schmidt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a function h, find the corresponding basis function orthonormal to all previous ones.</p>
+<dl class="docutils">
+<dt>h <span class="classifier-delimiter">:</span> <span class="classifier">waveform</span></dt>
+<dd>basis : List of <em>orthonormal</em> waveforms</dd>
+<dt>a <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>Parameter to determine if the Gram-Schmidt procedure was made the new basis sufficiently orthogonal</dd>
+<dt>max_iter <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>Number of times to iterate the Gram-Schmidt procedure</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cbcrom.greedy.projection">
+<code class="descclassname">cbcrom.greedy.</code><code class="descname">projection</code><span class="sig-paren">(</span><em>h_new</em>, <em>orthonorm_list</em>, <em>add</em>, <em>scalar_multiply</em>, <em>inner_product</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cbcrom/greedy.html#projection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cbcrom.greedy.projection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate Proj(h_new) = sum c_i * e_i,
+where e_i = orthonorm_list[i],
+and c_i = &lt; hnew | e_i &gt;.
+This is the projection of a waveform hnew onto a vector space
+formed by the <em>orthonormal</em> basis orthonorm_list.</p>
+<dl class="docutils">
+<dt>orthonorm_list <span class="classifier-delimiter">:</span> <span class="classifier">List of basis vector waveforms.</span></dt>
+<dd>Set of <em>orthogonal</em> and <em>normalized</em> waveforms.</dd>
+<dt>h_new :</dt>
+<dd>A New waveform.</dd>
+<dt>add <span class="classifier-delimiter">:</span> <span class="classifier">function(h1, h2)</span></dt>
+<dd>Function that adds two waveforms.</dd>
+<dt>scalar_multiply <span class="classifier-delimiter">:</span> <span class="classifier">function(alpha, h)</span></dt>
+<dd>Function that multiplies the waveform h by the scalar alpha.</dd>
+<dt>inner_product <span class="classifier-delimiter">:</span> <span class="classifier">function(h1, h2)</span></dt>
+<dd>Function that evaluates the inner product (scalar) of two waveforms.</dd>
+</dl>
+<dl class="docutils">
+<dt>proj_onto_span :</dt>
+<dd>Proj(h_new).</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cbcrom.greedy.subtract_projection">
+<code class="descclassname">cbcrom.greedy.</code><code class="descname">subtract_projection</code><span class="sig-paren">(</span><em>h_new</em>, <em>orthonorm_list</em>, <em>add</em>, <em>subtract</em>, <em>scalar_multiply</em>, <em>inner_product</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cbcrom/greedy.html#subtract_projection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cbcrom.greedy.subtract_projection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate h_new - Proj(h_new):
+The component of hnew orthogonal to the
+projection of hnew onto the vector space
+formed by the <em>orthonormal</em> basis orthonorm_list.</p>
+<dl class="docutils">
+<dt>orthonorm_list <span class="classifier-delimiter">:</span> <span class="classifier">List of basis vector waveforms.</span></dt>
+<dd>Set of <em>orthogonal</em> and <em>normalized</em> waveforms.</dd>
+<dt>h_new :</dt>
+<dd>A New waveform.</dd>
+<dt>add <span class="classifier-delimiter">:</span> <span class="classifier">function(h1, h2)</span></dt>
+<dd>Function that adds two waveforms.</dd>
+<dt>subtract <span class="classifier-delimiter">:</span> <span class="classifier">function(h1, h2)</span></dt>
+<dd>Function that subtracts two waveforms (h1-h2).</dd>
+<dt>scalar_multiply <span class="classifier-delimiter">:</span> <span class="classifier">function(alpha, h)</span></dt>
+<dd>Function that multiplies the waveform h by the scalar alpha.</dd>
+<dt>inner_product <span class="classifier-delimiter">:</span> <span class="classifier">function(h1, h2)</span></dt>
+<dd>Function that evaluates the inner product (scalar) of two waveforms.</dd>
+</dl>
+<dl class="docutils">
+<dt>diff :</dt>
+<dd>h_new - Proj(h_new)</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="cbcrom-taylort4trainingset-module">
+<h2>cbcrom.taylort4trainingset module<a class="headerlink" href="#cbcrom-taylort4trainingset-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="cbcrom-timedomainrom-module">
+<h2>cbcrom.timedomainrom module<a class="headerlink" href="#cbcrom-timedomainrom-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="cbcrom-timedomainwaveform-module">
+<h2>cbcrom.timedomainwaveform module<a class="headerlink" href="#cbcrom-timedomainwaveform-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="cbcrom-timeseriesrom-module">
+<h2>cbcrom.timeseriesrom module<a class="headerlink" href="#cbcrom-timeseriesrom-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="cbcrom-timeseriesset-module">
+<h2>cbcrom.timeseriesset module<a class="headerlink" href="#cbcrom-timeseriesset-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="cbcrom-timeseriesutils-module">
+<h2>cbcrom.timeseriesutils module<a class="headerlink" href="#cbcrom-timeseriesutils-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-cbcrom">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-cbcrom" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="index.html" class="btn btn-neutral" title="Welcome to cbcrom’s documentation!" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Benjamin Lackey.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

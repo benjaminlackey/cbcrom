@@ -1,0 +1,333 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>cbcrom.empiricalinterpolation &mdash; cbcrom  documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="cbcrom  documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> cbcrom
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../cbcrom.html">cbcrom package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">cbcrom</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+    <li>cbcrom.empiricalinterpolation</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for cbcrom.empiricalinterpolation</h1><div class="highlight"><pre>
+<span class="c"># Copyright (C) 2015 Benjamin Lackey</span>
+<span class="c">#</span>
+<span class="c"># This program is free software; you can redistribute it and/or modify it</span>
+<span class="c"># under the terms of the GNU General Public License as published by the</span>
+<span class="c"># Free Software Foundation; either version 3 of the License, or (at your</span>
+<span class="c"># option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># This program is distributed in the hope that it will be useful, but</span>
+<span class="c"># WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General</span>
+<span class="c"># Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU General Public License along</span>
+<span class="c"># with this program; if not, write to the Free Software Foundation, Inc.,</span>
+<span class="c"># 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.</span>
+
+
+<span class="c"># Numpy has linear algebra libraries. Is this the standard for Python?</span>
+<span class="c"># Are there better/more standard linear algebra libraries in scipy?</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+
+<span class="c">################################################################################</span>
+<span class="c"># Find empirical interpolation nodes, and construct the empirical interpolant.</span>
+<span class="c"># These functions are meant to work for any reduced basis that can</span>
+<span class="c"># be expressed as a list of array-like objects.</span>
+<span class="c">################################################################################</span>
+
+<div class="viewcode-block" id="generate_empirical_nodes"><a class="viewcode-back" href="../../cbcrom.html#cbcrom.empiricalinterpolation.generate_empirical_nodes">[docs]</a><span class="k">def</span> <span class="nf">generate_empirical_nodes</span><span class="p">(</span><span class="n">reduced_basis</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Determine the empirical nodes from the reduced basis.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    reduced_basis : List of arraylike objects.</span>
+<span class="sd">        The orthonormalized waveforms making up the reduced basis.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    empirical_node_indices : List of integers</span>
+<span class="sd">        Indices for the waveform at the nodes T_i.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c"># Get the index of the 0th empirical node T_0</span>
+    <span class="c"># from the maximum value of the 0th reduced basis.</span>
+    <span class="n">imax</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">reduced_basis</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+    <span class="n">empirical_node_indices</span> <span class="o">=</span> <span class="p">[</span><span class="n">imax</span><span class="p">]</span>
+    
+    <span class="c"># Iterate to find the other impirical nodes.</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">reduced_basis</span><span class="p">)):</span>
+        <span class="c"># The jth empirical node</span>
+        <span class="n">imax</span> <span class="o">=</span> <span class="n">generate_new_empirical_node</span><span class="p">(</span><span class="n">reduced_basis</span><span class="p">,</span> <span class="n">empirical_node_indices</span><span class="p">)</span>
+        <span class="n">empirical_node_indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">imax</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">empirical_node_indices</span></div>
+
+
+<div class="viewcode-block" id="generate_new_empirical_node"><a class="viewcode-back" href="../../cbcrom.html#cbcrom.empiricalinterpolation.generate_new_empirical_node">[docs]</a><span class="k">def</span> <span class="nf">generate_new_empirical_node</span><span class="p">(</span><span class="n">reduced_basis</span><span class="p">,</span> <span class="n">empirical_node_indices</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Determine the next empirical node from the current empirical nodes and the reduced basis.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    reduced_basis : List of arraylike objects.</span>
+<span class="sd">        The orthonormalized waveforms making up the reduced basis.</span>
+<span class="sd">    empirical_node_indices : List of integers</span>
+<span class="sd">        Indices corresponding to the nodes [T_0, ..., T_{j-1}].</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    imax : int</span>
+<span class="sd">        Index corresponding to the new node T_j.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+    
+    <span class="c"># j is current iteration</span>
+    <span class="n">j</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">empirical_node_indices</span><span class="p">)</span>
+    
+    <span class="c"># Matrix containing A_{ki} = e_i(t_k) =</span>
+    <span class="c"># [[e0(T0)    ... e{j-1}(T0)    ]</span>
+    <span class="c">#  [          ...               ]</span>
+    <span class="c">#  [e0(T{j-1})... e{j-1}(T{j-1})]]</span>
+    <span class="n">Aki</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">reduced_basis</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">empirical_node_indices</span><span class="p">[</span><span class="n">k</span><span class="p">]]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">j</span><span class="p">)]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">j</span><span class="p">)])</span>
+    
+    <span class="c"># Vector containing b_k = e_j(T_k) =</span>
+    <span class="c"># [ej(T0) ... ej(T{j-1})]</span>
+    <span class="n">bk</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">reduced_basis</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">empirical_node_indices</span><span class="p">[</span><span class="n">k</span><span class="p">]]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">j</span><span class="p">)])</span>
+    
+    <span class="c"># Vector containing C_i =</span>
+    <span class="c"># [C0 ... C{j-1}]</span>
+    <span class="n">Ci</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">Aki</span><span class="p">,</span> <span class="n">bk</span><span class="p">)</span>
+    
+    <span class="c"># Evaluate empirical interpolant I_{j-1}[e_j](t) of the basis e_j(t)</span>
+    <span class="n">waveformmat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">reduced_basis</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">j</span><span class="p">)])</span>
+    <span class="n">interpolant</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Ci</span><span class="p">,</span> <span class="n">waveformmat</span><span class="p">)</span>
+    
+    <span class="c"># Evaluate residual = I_{j-1}[e_j](t) - e_j(t)</span>
+    <span class="n">ej</span> <span class="o">=</span> <span class="n">reduced_basis</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+    <span class="n">residual</span> <span class="o">=</span> <span class="n">interpolant</span> <span class="o">-</span> <span class="n">ej</span>
+    
+    <span class="c"># New empirical node is at the maximum of the residual</span>
+    <span class="n">imax</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">residual</span><span class="p">))</span>
+    
+    <span class="c"># !!!!!! You had previously looked for the argmax of the real part instead of the absolute value !!!!!!!!</span>
+    <span class="c"># This is wrong:</span>
+    <span class="c">#imax = np.argmax(residual)</span>
+    
+    <span class="k">return</span> <span class="n">imax</span></div>
+
+
+<div class="viewcode-block" id="generate_interpolant_list"><a class="viewcode-back" href="../../cbcrom.html#cbcrom.empiricalinterpolation.generate_interpolant_list">[docs]</a><span class="k">def</span> <span class="nf">generate_interpolant_list</span><span class="p">(</span><span class="n">reduced_basis</span><span class="p">,</span> <span class="n">empirical_node_indices</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Evaluate the TimeSeries B_j(t) that gives the empirical interpolant I_m[h](t) = Sum_{j=1}^m B_j(t) h(T_j)</span>
+<span class="sd">    when the the quantities h(T_j) are known.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    reduced_basis : List of arraylike objects.</span>
+<span class="sd">        The orthonormalized waveforms making up the reduced basis.</span>
+<span class="sd">    empirical_node_indices : List of integers</span>
+<span class="sd">        Indices corresponding to the nodes [T_0, ..., T_{j-1}].</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    B_j: List of 1d arrays</span>
+<span class="sd">        The interpolating functions</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c"># Dimension of reduced basis</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">reduced_basis</span><span class="p">)</span>
+    
+    <span class="c"># Matrix containing V_{ji} = e_i(t_j) =</span>
+    <span class="c"># [[e0(T0)    ... e{m-1}(T0)    ]</span>
+    <span class="c">#  [          ...               ]</span>
+    <span class="c">#  [e0(T{m-1})... e{m-1}(T{m-1})]]</span>
+    <span class="n">V_ji</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">reduced_basis</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">empirical_node_indices</span><span class="p">[</span><span class="n">j</span><span class="p">]]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">m</span><span class="p">)]</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">m</span><span class="p">)])</span>
+    
+    <span class="c"># Calculate inverse</span>
+    <span class="n">Vinverse_ij</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">V_ji</span><span class="p">)</span>
+    
+    <span class="c"># Calculate B_j(t) = Sum_{i=1}^m e_i(t) (Vinv)_ij</span>
+    <span class="n">waveformmat_il</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">reduced_basis</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">m</span><span class="p">)])</span>
+    
+    <span class="n">B_j</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">waveformmat_il</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">Vinverse_ij</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+    
+    <span class="c"># Convert B_j from 2d array to list of 1d arrays</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">B_j</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">m</span><span class="p">)]</span></div>
+
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Benjamin Lackey.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,666 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>cbcrom.chebyshev &mdash; cbcrom  documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="cbcrom  documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> cbcrom
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../cbcrom.html">cbcrom package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">cbcrom</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+    <li>cbcrom.chebyshev</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for cbcrom.chebyshev</h1><div class="highlight"><pre>
+<span class="c"># Copyright (C) 2015 Benjamin Lackey</span>
+<span class="c">#</span>
+<span class="c"># This program is free software; you can redistribute it and/or modify it</span>
+<span class="c"># under the terms of the GNU General Public License as published by the</span>
+<span class="c"># Free Software Foundation; either version 3 of the License, or (at your</span>
+<span class="c"># option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># This program is distributed in the hope that it will be useful, but</span>
+<span class="c"># WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General</span>
+<span class="c"># Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU General Public License along</span>
+<span class="c"># with this program; if not, write to the Free Software Foundation, Inc.,</span>
+<span class="c"># 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Utilities for Chebyshev interpolation.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">scipy.fftpack</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">h5py</span>
+
+<span class="c">################################################################################</span>
+<span class="c"># Functions for Chebyshev Polynomials and finding the nodes</span>
+<span class="c">################################################################################</span>
+
+<div class="viewcode-block" id="chebyshev_polynomial"><a class="viewcode-back" href="../../cbcrom.html#cbcrom.chebyshev.chebyshev_polynomial">[docs]</a><span class="k">def</span> <span class="nf">chebyshev_polynomial</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;n-th order Chebyshev polynomial T_n(x) of the first kind.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    n : int</span>
+<span class="sd">        Order of the polynomial &gt;= 0.</span>
+<span class="sd">    x : float </span>
+<span class="sd">        Must by evaluated in the interval [-1, 1].</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">n</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="n">x</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="chebyshev_lobatto_nodes"><a class="viewcode-back" href="../../cbcrom.html#cbcrom.chebyshev.chebyshev_lobatto_nodes">[docs]</a><span class="k">def</span> <span class="nf">chebyshev_lobatto_nodes</span><span class="p">(</span><span class="n">Nnodes</span><span class="p">,</span> <span class="n">low</span><span class="o">=-</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Find the Chebyshev-Lobatto nodes in the interval [low, high].</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    Nnodes : int</span>
+<span class="sd">        Number of nodes</span>
+<span class="sd">    low : {float, -1.0} </span>
+<span class="sd">        Lower bound of the interval.</span>
+<span class="sd">    high : {float, 1.0}</span>
+<span class="sd">        Upper bound of the invterval</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">Norder</span><span class="o">=</span><span class="n">Nnodes</span><span class="o">-</span><span class="mi">1</span>
+    <span class="n">k</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">Norder</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">x_k</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">k</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="n">Norder</span><span class="p">)</span>
+    <span class="n">y_k</span> <span class="o">=</span> <span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">high</span><span class="o">-</span><span class="n">low</span><span class="p">)</span><span class="o">*</span><span class="n">x_k</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">low</span><span class="o">+</span><span class="n">high</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">y_k</span></div>
+
+
+
+
+
+<span class="c">################################################################################</span>
+<span class="c"># Fast Chebyshev transform in 1D, 2D, 3D</span>
+<span class="c">################################################################################</span>
+
+<div class="viewcode-block" id="fast_chebyshev_transform"><a class="viewcode-back" href="../../cbcrom.html#cbcrom.chebyshev.fast_chebyshev_transform">[docs]</a><span class="k">def</span> <span class="nf">fast_chebyshev_transform</span><span class="p">(</span><span class="n">f_k</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute the Chebyshev transform of f_k.</span>
+<span class="sd">    </span>
+<span class="sd">    Paramaters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    f_k : real numpy array</span>
+<span class="sd">        Function evaluated at the Chebyshev-Gauss-Lobatto nodes in interval [-1, 1].</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    b_n : real numpy array</span>
+<span class="sd">        Coefficients of the Chebyshev polynomials.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">Npoints</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">f_k</span><span class="p">)</span>
+    
+    <span class="c"># Make array of (-1)**n = [1, -1, 1, -1, 1, ...]</span>
+    <span class="n">sign</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">Npoints</span><span class="p">)</span>
+    <span class="n">sign</span><span class="p">[::</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">sign</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+    
+    <span class="c"># Do type 1 cosine transform (which multiplies all points except first and last by 2)</span>
+    <span class="n">b_n</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">fftpack</span><span class="o">.</span><span class="n">dct</span><span class="p">(</span><span class="n">f_k</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">overwrite_x</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">Npoints</span><span class="o">-</span><span class="mf">1.0</span><span class="p">)</span>
+    
+    <span class="c"># Flip the sign of every other coefficient and divide first and last coefficient by 2</span>
+    <span class="n">b_n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">b_n</span><span class="p">,</span> <span class="n">sign</span><span class="p">)</span>
+    <span class="n">b_n</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*=</span> <span class="mf">0.5</span>
+    <span class="n">b_n</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">*=</span> <span class="mf">0.5</span>
+    
+    <span class="k">return</span> <span class="n">b_n</span></div>
+
+
+<div class="viewcode-block" id="fast_chebyshev_transform_2d"><a class="viewcode-back" href="../../cbcrom.html#cbcrom.chebyshev.fast_chebyshev_transform_2d">[docs]</a><span class="k">def</span> <span class="nf">fast_chebyshev_transform_2d</span><span class="p">(</span><span class="n">f_ij</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate the coefficients c_lm of the Chebyshev polynomial product T_l(x)T_m(y)</span>
+<span class="sd">    in the Chebyshev expansion of the function f(x, y).</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    f_ij : 2d array of floats</span>
+<span class="sd">        Value of the function f(x_i, y_j) at the Chebyshev-Lobatto nodes x_i, y_j.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    c_lmn : 2d array of float</span>
+<span class="sd">        Coefficients of T_l(x)T_m(y).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Number of points in each dimension</span>
+    <span class="n">Nx</span><span class="p">,</span> <span class="n">Ny</span> <span class="o">=</span> <span class="n">f_ij</span><span class="o">.</span><span class="n">shape</span>
+    
+    <span class="c"># Make a copy of f_ij instead of just referencing it with = </span>
+    <span class="c"># so you don&#39;t overwrite f_ij</span>
+    <span class="n">c_lm</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">f_ij</span><span class="p">)</span>
+    
+    <span class="c"># Transform each column of the grid</span>
+    <span class="c"># Then repeat for each parameter</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">Ny</span><span class="p">):</span>
+        <span class="n">c_lm</span><span class="p">[:,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">fast_chebyshev_transform</span><span class="p">(</span><span class="n">c_lm</span><span class="p">[:,</span> <span class="n">j</span><span class="p">])</span>
+      
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">Nx</span><span class="p">):</span>
+            <span class="n">c_lm</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">fast_chebyshev_transform</span><span class="p">(</span><span class="n">c_lm</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:])</span>
+    
+    <span class="k">return</span> <span class="n">c_lm</span></div>
+
+
+<div class="viewcode-block" id="fast_chebyshev_transform_3d"><a class="viewcode-back" href="../../cbcrom.html#cbcrom.chebyshev.fast_chebyshev_transform_3d">[docs]</a><span class="k">def</span> <span class="nf">fast_chebyshev_transform_3d</span><span class="p">(</span><span class="n">f_ijk</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate the coefficients c_lmn of the Chebyshev polynomial product T_l(x)T_m(y)T_n(z)</span>
+<span class="sd">    in the Chebyshev expansion of the function f(x, y, z).</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    f_ijk : 3d array of floats</span>
+<span class="sd">        Value of the function f(x_i, y_j, z_k) at the Chebyshev-Lobatto nodes x_i, y_j, z_k.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    c_lmn : 3d array of float</span>
+<span class="sd">        Coefficients of T_l(x)T_m(y)T_n(z).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Number of points in each dimension</span>
+    <span class="n">Nx</span><span class="p">,</span> <span class="n">Ny</span><span class="p">,</span> <span class="n">Nz</span> <span class="o">=</span> <span class="n">f_ijk</span><span class="o">.</span><span class="n">shape</span>
+    
+    <span class="c"># Make a copy of f_ijk instead of just referencing it with = </span>
+    <span class="c"># so you don&#39;t overwrite f_ijk</span>
+    <span class="n">c_lmn</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">f_ijk</span><span class="p">)</span>
+    
+    <span class="c"># Transform each column of the grid</span>
+    <span class="c"># Then repeat for each parameter</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">Ny</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">Nz</span><span class="p">):</span> 
+            <span class="n">c_lmn</span><span class="p">[:,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">fast_chebyshev_transform</span><span class="p">(</span><span class="n">c_lmn</span><span class="p">[:,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">])</span>
+    
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">Nz</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">Nx</span><span class="p">):</span> 
+            <span class="n">c_lmn</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:,</span> <span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">fast_chebyshev_transform</span><span class="p">(</span><span class="n">c_lmn</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:,</span> <span class="n">k</span><span class="p">])</span>
+    
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">Nx</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">Ny</span><span class="p">):</span> 
+            <span class="n">c_lmn</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">fast_chebyshev_transform</span><span class="p">(</span><span class="n">c_lmn</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="p">:])</span>
+    
+    <span class="k">return</span> <span class="n">c_lmn</span></div>
+
+
+<span class="c">################################################################################</span>
+<span class="c"># Perform the interpolation in 1D, 2D, 3D</span>
+<span class="c">################################################################################</span>
+
+<div class="viewcode-block" id="chebyshev_interpolation"><a class="viewcode-back" href="../../cbcrom.html#cbcrom.chebyshev.chebyshev_interpolation">[docs]</a><span class="k">def</span> <span class="nf">chebyshev_interpolation</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">c_l_array</span><span class="p">,</span> <span class="n">xlow</span><span class="p">,</span> <span class="n">xhigh</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Interpolate f(x) given its expansion in terms of Chebyshev polynomials T_l(x).</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x : float</span>
+<span class="sd">        c_l_array : 1d array</span>
+<span class="sd">        Coefficients of the Chebyshev polynomials</span>
+<span class="sd">        xlow : float</span>
+<span class="sd">        Lower bound of the interval.</span>
+<span class="sd">        xhigh : float</span>
+<span class="sd">        Upper bound of the interval.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        f(x) : float</span>
+<span class="sd">        Function evaluated at x.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+    <span class="n">xrescale</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span><span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">xhigh</span><span class="o">+</span><span class="n">xlow</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">xhigh</span><span class="o">-</span><span class="n">xlow</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">polynomial</span><span class="o">.</span><span class="n">chebyshev</span><span class="o">.</span><span class="n">chebval</span><span class="p">(</span><span class="n">xrescale</span><span class="p">,</span> <span class="n">c_l_array</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="chebyshev_interpolation2d"><a class="viewcode-back" href="../../cbcrom.html#cbcrom.chebyshev.chebyshev_interpolation2d">[docs]</a><span class="k">def</span> <span class="nf">chebyshev_interpolation2d</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">c_lm_array</span><span class="p">,</span> <span class="n">xlow</span><span class="p">,</span> <span class="n">xhigh</span><span class="p">,</span> <span class="n">ylow</span><span class="p">,</span> <span class="n">yhigh</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Interpolate f(x, y) given its expansion in terms of Chebyshev polynomials T_l(x)T_m(y).</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x, y : floats</span>
+<span class="sd">        c_lm_array : 2d array</span>
+<span class="sd">        Coefficients of the Chebyshev polynomials</span>
+<span class="sd">        xlow, ylow : floats</span>
+<span class="sd">        Lower bounds of the intervals.</span>
+<span class="sd">        xhigh, yhigh : floats</span>
+<span class="sd">        Upper bounds of the intervals.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        f(x, y) : float</span>
+<span class="sd">        Function evaluated at x, y.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+    <span class="n">xrescale</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span><span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">xhigh</span><span class="o">+</span><span class="n">xlow</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">xhigh</span><span class="o">-</span><span class="n">xlow</span><span class="p">))</span>
+    <span class="n">yrescale</span> <span class="o">=</span> <span class="p">(</span><span class="n">y</span><span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">yhigh</span><span class="o">+</span><span class="n">ylow</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">yhigh</span><span class="o">-</span><span class="n">ylow</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">polynomial</span><span class="o">.</span><span class="n">chebyshev</span><span class="o">.</span><span class="n">chebval2d</span><span class="p">(</span><span class="n">xrescale</span><span class="p">,</span> <span class="n">yrescale</span><span class="p">,</span> <span class="n">c_lm_array</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="chebyshev_interpolation3d"><a class="viewcode-back" href="../../cbcrom.html#cbcrom.chebyshev.chebyshev_interpolation3d">[docs]</a><span class="k">def</span> <span class="nf">chebyshev_interpolation3d</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">c_lmn_array</span><span class="p">,</span> <span class="n">xlow</span><span class="p">,</span> <span class="n">xhigh</span><span class="p">,</span> <span class="n">ylow</span><span class="p">,</span> <span class="n">yhigh</span><span class="p">,</span> <span class="n">zlow</span><span class="p">,</span> <span class="n">zhigh</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Interpolate f(x, y, z) given its expansion in terms of Chebyshev polynomials T_l(x)T_m(y)T_n(z).</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x, y, z : floats</span>
+<span class="sd">        c_lmn_array : 3d array</span>
+<span class="sd">        Coefficients of the Chebyshev polynomials</span>
+<span class="sd">        xlow, ylow, zlow : floats</span>
+<span class="sd">        Lower bounds of the intervals.</span>
+<span class="sd">        xhigh, yhigh, zhigh : floats</span>
+<span class="sd">        Upper bounds of the intervals.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        f(x, y, z) : float</span>
+<span class="sd">        Function evaluated at x, y, z.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+    <span class="n">xrescale</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span><span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">xhigh</span><span class="o">+</span><span class="n">xlow</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">xhigh</span><span class="o">-</span><span class="n">xlow</span><span class="p">))</span>
+    <span class="n">yrescale</span> <span class="o">=</span> <span class="p">(</span><span class="n">y</span><span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">yhigh</span><span class="o">+</span><span class="n">ylow</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">yhigh</span><span class="o">-</span><span class="n">ylow</span><span class="p">))</span>
+    <span class="n">zrescale</span> <span class="o">=</span> <span class="p">(</span><span class="n">z</span><span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">zhigh</span><span class="o">+</span><span class="n">zlow</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">zhigh</span><span class="o">-</span><span class="n">zlow</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">polynomial</span><span class="o">.</span><span class="n">chebyshev</span><span class="o">.</span><span class="n">chebval3d</span><span class="p">(</span><span class="n">xrescale</span><span class="p">,</span> <span class="n">yrescale</span><span class="p">,</span> <span class="n">zrescale</span><span class="p">,</span> <span class="n">c_lmn_array</span><span class="p">)</span></div>
+
+
+<span class="c">################################################################################</span>
+<span class="c"># Class for approximating 1D, 2D, 3D functions with Chebyshev polynomials</span>
+<span class="c">################################################################################</span>
+
+<div class="viewcode-block" id="ChebyshevApproximation"><a class="viewcode-back" href="../../cbcrom.html#cbcrom.chebyshev.ChebyshevApproximation">[docs]</a><span class="k">class</span> <span class="nc">ChebyshevApproximation</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Methods for approximating [1, 2, 3]-d functions with Chebyshev polynomials.</span>
+<span class="sd">    </span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    shape : List of length Ndim</span>
+<span class="sd">        Number of points in each dimension</span>
+<span class="sd">    low : List of length Ndim</span>
+<span class="sd">        Lower boundary of grid</span>
+<span class="sd">    high : List of length Ndim</span>
+<span class="sd">        Upper boundary of grid</span>
+<span class="sd">    Ndim : int</span>
+<span class="sd">        Number of dimensions</span>
+<span class="sd">    nodes : Ndim length list of arrays containing the nodes in each dimension.</span>
+<span class="sd">        Coordinates of the Lobatto nodes</span>
+<span class="sd">    f_grid : Array of shape shape.</span>
+<span class="sd">        Function values at the grid of Lobatto nodes.</span>
+<span class="sd">    coefficients : Array of shape shape.</span>
+<span class="sd">        Coefficients of the Chebyshev expansion.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">low</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">high</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Ndim</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">f_grid</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">coefficients</span> <span class="o">=</span> <span class="bp">None</span>
+        
+<div class="viewcode-block" id="ChebyshevApproximation.lobatto_nodes"><a class="viewcode-back" href="../../cbcrom.html#cbcrom.chebyshev.ChebyshevApproximation.lobatto_nodes">[docs]</a>    <span class="k">def</span> <span class="nf">lobatto_nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">low</span><span class="p">,</span> <span class="n">high</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Generate a list of arrays for the Lobatto nodes in each dimension.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">shape</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">low</span> <span class="o">=</span> <span class="n">low</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">high</span> <span class="o">=</span> <span class="n">high</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Ndim</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ndim</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span> <span class="s">&#39;Only 1, 2, and 3 dimensions are currently supported.&#39;</span>
+            
+        <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Ndim</span><span class="p">):</span>
+            <span class="n">nodes_i</span> <span class="o">=</span> <span class="n">chebyshev_lobatto_nodes</span><span class="p">(</span><span class="n">shape</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">low</span><span class="o">=</span><span class="n">low</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">high</span><span class="o">=</span><span class="n">high</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nodes_i</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="ChebyshevApproximation.evaluate_function_at_lobatto_nodes"><a class="viewcode-back" href="../../cbcrom.html#cbcrom.chebyshev.ChebyshevApproximation.evaluate_function_at_lobatto_nodes">[docs]</a>    <span class="k">def</span> <span class="nf">evaluate_function_at_lobatto_nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">low</span><span class="p">,</span> <span class="n">high</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Evaluate a function on a grid given by the Lobatto nodes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lobatto_nodes</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">low</span><span class="p">,</span> <span class="n">high</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">x_i</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">f_grid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">func</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">x_i</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">x_i</span><span class="p">,</span> <span class="n">y_j</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">f_grid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">func</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">y_j</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">x_i</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">x_i</span><span class="p">,</span> <span class="n">y_j</span><span class="p">,</span> <span class="n">z_k</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">f_grid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[[</span><span class="n">func</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span> <span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="n">z_k</span><span class="p">]</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">y_j</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">x_i</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span> <span class="s">&#39;Only 1, 2, and 3 dimensions are currently supported.&#39;</span></div>
+        
+<div class="viewcode-block" id="ChebyshevApproximation.calculate_chebyshev_coefficients"><a class="viewcode-back" href="../../cbcrom.html#cbcrom.chebyshev.ChebyshevApproximation.calculate_chebyshev_coefficients">[docs]</a>    <span class="k">def</span> <span class="nf">calculate_chebyshev_coefficients</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Calculate the coefficients in the Chebyshev expansion.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">coefficients</span> <span class="o">=</span> <span class="n">fast_chebyshev_transform</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">f_grid</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">coefficients</span> <span class="o">=</span> <span class="n">fast_chebyshev_transform_2d</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">f_grid</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">coefficients</span> <span class="o">=</span> <span class="n">fast_chebyshev_transform_3d</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">f_grid</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span> <span class="s">&#39;Only 1, 2, and 3 dimensions are currently supported.&#39;</span></div>
+            
+<div class="viewcode-block" id="ChebyshevApproximation.interpolation"><a class="viewcode-back" href="../../cbcrom.html#cbcrom.chebyshev.ChebyshevApproximation.interpolation">[docs]</a>    <span class="k">def</span> <span class="nf">interpolation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Interpolate the function at a specific point.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c"># args is a tuple</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">coeff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">coefficients</span>
+            <span class="n">xlow</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">low</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">xhigh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">high</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">chebyshev_interpolation</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">coeff</span><span class="p">,</span> <span class="n">xlow</span><span class="p">,</span> <span class="n">xhigh</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">args</span>
+            <span class="n">coeff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">coefficients</span>
+            <span class="n">xlow</span><span class="p">,</span> <span class="n">ylow</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">low</span>
+            <span class="n">xhigh</span><span class="p">,</span> <span class="n">yhigh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">high</span>
+            <span class="k">return</span> <span class="n">chebyshev_interpolation2d</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">coeff</span><span class="p">,</span> <span class="n">xlow</span><span class="p">,</span> <span class="n">xhigh</span><span class="p">,</span> <span class="n">ylow</span><span class="p">,</span> <span class="n">yhigh</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">args</span>
+            <span class="n">coeff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">coefficients</span>
+            <span class="n">xlow</span><span class="p">,</span> <span class="n">ylow</span><span class="p">,</span> <span class="n">zlow</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">low</span>
+            <span class="n">xhigh</span><span class="p">,</span> <span class="n">yhigh</span><span class="p">,</span> <span class="n">zhigh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">high</span>
+            <span class="k">return</span> <span class="n">chebyshev_interpolation3d</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">coeff</span><span class="p">,</span> <span class="n">xlow</span><span class="p">,</span> <span class="n">xhigh</span><span class="p">,</span> <span class="n">ylow</span><span class="p">,</span> <span class="n">yhigh</span><span class="p">,</span> <span class="n">zlow</span><span class="p">,</span> <span class="n">zhigh</span><span class="p">)</span></div></div>
+
+
+<span class="c">################################################################################</span>
+<span class="c">#      Generating lists of interpolating functions and saving them</span>
+<span class="c">################################################################################</span>
+
+
+<div class="viewcode-block" id="chebyshev_interpolation3d_generator"><a class="viewcode-back" href="../../cbcrom.html#cbcrom.chebyshev.chebyshev_interpolation3d_generator">[docs]</a><span class="k">def</span> <span class="nf">chebyshev_interpolation3d_generator</span><span class="p">(</span><span class="n">coefficients</span><span class="p">,</span> <span class="n">params_min</span><span class="p">,</span> <span class="n">params_max</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Generate a function of N parameters that interpolates a uniformly spaced Nd array.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    coefficients : N-d numpy array</span>
+<span class="sd">        The chebyshev coefficients corresponding to a list of functions.</span>
+<span class="sd">    params_min : 1d array of length 3</span>
+<span class="sd">        Minimum value of each parameter.</span>
+<span class="sd">    params_max : 1d array of length 3</span>
+<span class="sd">        Maximum value of each parameter.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    function_list : list of function(params)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cheb_approx</span> <span class="o">=</span> <span class="n">ChebyshevApproximation</span><span class="p">()</span>
+    <span class="n">cheb_approx</span><span class="o">.</span><span class="n">low</span> <span class="o">=</span> <span class="n">params_min</span>
+    <span class="n">cheb_approx</span><span class="o">.</span><span class="n">high</span> <span class="o">=</span> <span class="n">params_max</span>
+    <span class="n">cheb_approx</span><span class="o">.</span><span class="n">Ndim</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="n">cheb_approx</span><span class="o">.</span><span class="n">coefficients</span> <span class="o">=</span> <span class="n">coefficients</span>
+    <span class="k">def</span> <span class="nf">interp</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">cheb_approx</span><span class="o">.</span><span class="n">interpolation</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">params</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">params</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+    
+    <span class="k">return</span> <span class="n">interp</span></div>
+
+
+<div class="viewcode-block" id="chebyshev_coefficient3d_list_generator"><a class="viewcode-back" href="../../cbcrom.html#cbcrom.chebyshev.chebyshev_coefficient3d_list_generator">[docs]</a><span class="k">def</span> <span class="nf">chebyshev_coefficient3d_list_generator</span><span class="p">(</span><span class="n">f_ijk_list</span><span class="p">,</span> <span class="n">params_min</span><span class="p">,</span> <span class="n">params_max</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate Chebyshev coefficients to approximate the function (amp or phase) at the empirical_nodes T_i.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    f_ijk_list : list of N-d arrays</span>
+<span class="sd">        Function values on the Chebyshev-Gauss-Lobatto grid.</span>
+<span class="sd">    params_min : 1d array of length 3</span>
+<span class="sd">        Minimum value of each parameter.</span>
+<span class="sd">    params_max : 1d array of length 3</span>
+<span class="sd">        Maximum value of each parameter.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    coefficient_list : List of N-d numpy arrays</span>
+<span class="sd">        The chebyshev coefficients corresponding to a list of functions.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c"># Number of empirical nodes T_i</span>
+    <span class="n">Nnodes</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">f_ijk_list</span><span class="p">)</span>
+    
+    <span class="c"># Generate amp(params) function at each empirical node</span>
+    <span class="n">coefficient_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">Nnodes</span><span class="p">):</span>
+        <span class="n">cheb_approx</span> <span class="o">=</span> <span class="n">ChebyshevApproximation</span><span class="p">()</span>
+        <span class="c"># Get the bounds of the parameter space</span>
+        <span class="n">cheb_approx</span><span class="o">.</span><span class="n">low</span> <span class="o">=</span> <span class="n">params_min</span>
+        <span class="n">cheb_approx</span><span class="o">.</span><span class="n">high</span> <span class="o">=</span> <span class="n">params_max</span>
+        <span class="n">cheb_approx</span><span class="o">.</span><span class="n">Ndim</span> <span class="o">=</span> <span class="mi">3</span>
+        <span class="n">cheb_approx</span><span class="o">.</span><span class="n">f_grid</span> <span class="o">=</span> <span class="n">f_ijk_list</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="c"># Calculate the Chebyshev coefficients</span>
+        <span class="n">cheb_approx</span><span class="o">.</span><span class="n">calculate_chebyshev_coefficients</span><span class="p">()</span>
+        <span class="n">coefficient_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cheb_approx</span><span class="o">.</span><span class="n">coefficients</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">coefficient_list</span></div>
+
+
+<div class="viewcode-block" id="save_chebyshev_coefficients_list"><a class="viewcode-back" href="../../cbcrom.html#cbcrom.chebyshev.save_chebyshev_coefficients_list">[docs]</a><span class="k">def</span> <span class="nf">save_chebyshev_coefficients_list</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">coefficients_list</span><span class="p">,</span> <span class="n">params_min</span><span class="p">,</span> <span class="n">params_max</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Load a list of N-d coefficient arrays.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    filename : string</span>
+<span class="sd">        hdf5 filename</span>
+<span class="sd">    coefficients_list : List of N-d numpy arrays</span>
+<span class="sd">        The chebyshev coefficients corresponding to a list of functions.</span>
+<span class="sd">    params_min : 1d array of length N</span>
+<span class="sd">        Minimum value of each parameter.</span>
+<span class="sd">    params_max : 1d array of length N</span>
+<span class="sd">        Maximum value of each parameter.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">coeff_file</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+    
+    <span class="n">Ncoeff</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">coefficients_list</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">Ncoeff</span><span class="p">):</span>
+        <span class="n">coeff_file</span><span class="p">[</span><span class="s">&#39;coeff_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)]</span> <span class="o">=</span> <span class="n">coefficients_list</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    
+    <span class="n">coeff_file</span><span class="p">[</span><span class="s">&#39;params_min&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">params_min</span>
+    <span class="n">coeff_file</span><span class="p">[</span><span class="s">&#39;params_max&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">params_max</span>
+    <span class="n">coeff_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="load_chebyshev_coefficients_list"><a class="viewcode-back" href="../../cbcrom.html#cbcrom.chebyshev.load_chebyshev_coefficients_list">[docs]</a><span class="k">def</span> <span class="nf">load_chebyshev_coefficients_list</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Load a list of N-d coefficient arrays.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    filename : string</span>
+<span class="sd">        hdf5 filename</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    coefficients_list : List of N-d numpy arrays</span>
+<span class="sd">        The chebyshev coefficients corresponding to a list of functions.</span>
+<span class="sd">    params_min : 1d array of length N</span>
+<span class="sd">        Minimum value of each parameter.</span>
+<span class="sd">    params_max : 1d array of length N</span>
+<span class="sd">        Maximum value of each parameter.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">coeff_file</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+    
+    <span class="c"># Get number of coefficients arrays</span>
+    <span class="n">names</span> <span class="o">=</span> <span class="n">coeff_file</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+    <span class="n">Ncoeffs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">([</span><span class="n">names</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">))</span> <span class="k">if</span> <span class="s">&#39;coeff_&#39;</span> <span class="ow">in</span> <span class="n">names</span><span class="p">[</span><span class="n">i</span><span class="p">]])</span>
+    
+    <span class="c"># Extract the coefficients arrays</span>
+    <span class="n">coefficients_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">coeff_file</span><span class="p">[</span><span class="s">&#39;coeff_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)][:]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">Ncoeffs</span><span class="p">)]</span>
+    
+    <span class="c"># Get parameter range</span>
+    <span class="n">params_min</span> <span class="o">=</span> <span class="n">coeff_file</span><span class="p">[</span><span class="s">&#39;params_min&#39;</span><span class="p">][:]</span>
+    <span class="n">params_max</span> <span class="o">=</span> <span class="n">coeff_file</span><span class="p">[</span><span class="s">&#39;params_max&#39;</span><span class="p">][:]</span>
+    
+    <span class="n">coeff_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    
+    <span class="k">return</span> <span class="n">coefficients_list</span><span class="p">,</span> <span class="n">params_min</span><span class="p">,</span> <span class="n">params_max</span></div>
+
+
+
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Benjamin Lackey.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

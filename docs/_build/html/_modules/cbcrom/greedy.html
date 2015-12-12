@@ -1,0 +1,846 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>cbcrom.greedy &mdash; cbcrom  documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="cbcrom  documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> cbcrom
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../cbcrom.html">cbcrom package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">cbcrom</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+    <li>cbcrom.greedy</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for cbcrom.greedy</h1><div class="highlight"><pre>
+<span class="c"># Copyright (C) 2015 Benjamin Lackey</span>
+<span class="c">#</span>
+<span class="c"># This program is free software; you can redistribute it and/or modify it</span>
+<span class="c"># under the terms of the GNU General Public License as published by the</span>
+<span class="c"># Free Software Foundation; either version 3 of the License, or (at your</span>
+<span class="c"># option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># This program is distributed in the hope that it will be useful, but</span>
+<span class="c"># WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General</span>
+<span class="c"># Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU General Public License along</span>
+<span class="c"># with this program; if not, write to the Free Software Foundation, Inc.,</span>
+<span class="c"># 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.</span>
+
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+
+
+<span class="c">################################################################################</span>
+<span class="c">#                   Generate reduced basis with greedy method                  #</span>
+<span class="c">################################################################################</span>
+
+<div class="viewcode-block" id="projection"><a class="viewcode-back" href="../../cbcrom.html#cbcrom.greedy.projection">[docs]</a><span class="k">def</span> <span class="nf">projection</span><span class="p">(</span><span class="n">h_new</span><span class="p">,</span> <span class="n">orthonorm_list</span><span class="p">,</span> <span class="n">add</span><span class="p">,</span> <span class="n">scalar_multiply</span><span class="p">,</span> <span class="n">inner_product</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate Proj(h_new) = sum c_i * e_i,</span>
+<span class="sd">    where e_i = orthonorm_list[i],</span>
+<span class="sd">    and c_i = &lt; hnew | e_i &gt;.</span>
+<span class="sd">    This is the projection of a waveform hnew onto a vector space</span>
+<span class="sd">    formed by the *orthonormal* basis orthonorm_list.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    orthonorm_list : List of basis vector waveforms.</span>
+<span class="sd">        Set of *orthogonal* and *normalized* waveforms.</span>
+<span class="sd">    h_new :</span>
+<span class="sd">        A New waveform.</span>
+<span class="sd">    add : function(h1, h2)</span>
+<span class="sd">        Function that adds two waveforms.</span>
+<span class="sd">    scalar_multiply : function(alpha, h)</span>
+<span class="sd">        Function that multiplies the waveform h by the scalar alpha.</span>
+<span class="sd">    inner_product : function(h1, h2)</span>
+<span class="sd">        Function that evaluates the inner product (scalar) of two waveforms.</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    proj_onto_span :</span>
+<span class="sd">        Proj(h_new).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Dimension of subspace spanned by the vectors orthonorm_list</span>
+    <span class="n">Nbases</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">orthonorm_list</span><span class="p">)</span>
+    
+    <span class="c"># Coefficients for inner product between hnew and the other waveforms</span>
+    <span class="c"># c_i = &lt; hnew | hnorm_i &gt;</span>
+    <span class="n">coeff_vec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">inner_product</span><span class="p">(</span><span class="n">orthonorm_list</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">h_new</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">Nbases</span><span class="p">)])</span>
+    
+    <span class="c"># Calculate projection of hnew onto span(orthonorm_list)</span>
+    <span class="c"># Allocate memory for the new waveform</span>
+    <span class="c"># !!!!!!!! This could be replaced by a function called matrix_vector_multiply !!!!!!!! if this is too slow.</span>
+    <span class="n">proj_onto_span</span> <span class="o">=</span> <span class="n">scalar_multiply</span><span class="p">(</span><span class="n">coeff_vec</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">orthonorm_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">Nbases</span><span class="p">):</span>
+        <span class="c"># Accumulate: proj = proj + c_i*e_i</span>
+        <span class="n">proj_onto_span</span> <span class="o">=</span> <span class="n">add</span><span class="p">(</span><span class="n">proj_onto_span</span><span class="p">,</span> <span class="n">scalar_multiply</span><span class="p">(</span><span class="n">coeff_vec</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">orthonorm_list</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+    
+    <span class="k">return</span> <span class="n">proj_onto_span</span></div>
+
+
+<div class="viewcode-block" id="subtract_projection"><a class="viewcode-back" href="../../cbcrom.html#cbcrom.greedy.subtract_projection">[docs]</a><span class="k">def</span> <span class="nf">subtract_projection</span><span class="p">(</span><span class="n">h_new</span><span class="p">,</span> <span class="n">orthonorm_list</span><span class="p">,</span> <span class="n">add</span><span class="p">,</span> <span class="n">subtract</span><span class="p">,</span> <span class="n">scalar_multiply</span><span class="p">,</span> <span class="n">inner_product</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate h_new - Proj(h_new):</span>
+<span class="sd">    The component of hnew orthogonal to the</span>
+<span class="sd">    projection of hnew onto the vector space</span>
+<span class="sd">    formed by the *orthonormal* basis orthonorm_list.</span>
+<span class="sd">        </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    orthonorm_list : List of basis vector waveforms.</span>
+<span class="sd">        Set of *orthogonal* and *normalized* waveforms.</span>
+<span class="sd">    h_new :</span>
+<span class="sd">        A New waveform.</span>
+<span class="sd">    add : function(h1, h2)</span>
+<span class="sd">        Function that adds two waveforms.</span>
+<span class="sd">    subtract : function(h1, h2)</span>
+<span class="sd">        Function that subtracts two waveforms (h1-h2).</span>
+<span class="sd">    scalar_multiply : function(alpha, h)</span>
+<span class="sd">        Function that multiplies the waveform h by the scalar alpha.</span>
+<span class="sd">    inner_product : function(h1, h2)</span>
+<span class="sd">        Function that evaluates the inner product (scalar) of two waveforms.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    diff :</span>
+<span class="sd">        h_new - Proj(h_new)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">proj_onto_span</span> <span class="o">=</span> <span class="n">projection</span><span class="p">(</span><span class="n">h_new</span><span class="p">,</span> <span class="n">orthonorm_list</span><span class="p">,</span> <span class="n">add</span><span class="p">,</span> <span class="n">scalar_multiply</span><span class="p">,</span> <span class="n">inner_product</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">subtract</span><span class="p">(</span><span class="n">h_new</span><span class="p">,</span> <span class="n">proj_onto_span</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="add_basis_with_iterated_modified_gram_schmidt"><a class="viewcode-back" href="../../cbcrom.html#cbcrom.greedy.add_basis_with_iterated_modified_gram_schmidt">[docs]</a><span class="k">def</span> <span class="nf">add_basis_with_iterated_modified_gram_schmidt</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">basis</span><span class="p">,</span> <span class="n">add</span><span class="p">,</span> <span class="n">subtract</span><span class="p">,</span> <span class="n">scalar_multiply</span><span class="p">,</span> <span class="n">inner_product</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Given a function h, find the corresponding basis function orthonormal to all previous ones.</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    h : waveform</span>
+<span class="sd">        basis : List of *orthonormal* waveforms</span>
+<span class="sd">    a : int</span>
+<span class="sd">        Parameter to determine if the Gram-Schmidt procedure was made the new basis sufficiently orthogonal</span>
+<span class="sd">    max_iter : int</span>
+<span class="sd">        Number of times to iterate the Gram-Schmidt procedure</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># the norm of h and the normalized version e_new</span>
+    <span class="c"># The np.abs() just gets rid of the not-quite-numerically-zero imaginary part)</span>
+    <span class="n">norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">inner_product</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">h</span><span class="p">)))</span>
+    <span class="n">e_new</span> <span class="o">=</span> <span class="n">scalar_multiply</span><span class="p">(</span><span class="mf">1.0</span><span class="o">/</span><span class="n">norm</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span>
+    
+    <span class="c"># flag = 1 when Gram-Schmidt has been done enough times</span>
+    <span class="n">flag</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="c"># ctr is the counter for the number of iterations</span>
+    <span class="n">ctr</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">while</span> <span class="n">flag</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="c">##### Start Gram-Schmidt orthogonalization #####</span>
+        <span class="c"># Subtract Proj_{basis}(e_new) (the projection of enew onto the basis)</span>
+        <span class="n">e_new</span> <span class="o">=</span> <span class="n">subtract_projection</span><span class="p">(</span><span class="n">e_new</span><span class="p">,</span> <span class="n">basis</span><span class="p">,</span> <span class="n">add</span><span class="p">,</span> <span class="n">subtract</span><span class="p">,</span> <span class="n">scalar_multiply</span><span class="p">,</span> <span class="n">inner_product</span><span class="p">)</span>
+        
+        <span class="c"># Get the norm of the remainder, but don&#39;t renormalize enew yet</span>
+        <span class="n">new_norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">inner_product</span><span class="p">(</span><span class="n">e_new</span><span class="p">,</span> <span class="n">e_new</span><span class="p">)))</span>
+        <span class="c">##### End Gram-Schmidt #####</span>
+        
+        <span class="c"># Determine if you need to do another iteration of Gram-Schmidt.</span>
+        <span class="c"># if h was almost parallel to span(basis), then the Gram-Schmidt process involved</span>
+        <span class="c"># subtracting two nearly equal vectors. This leads to a catastrophic loss in precission.</span>
+        <span class="c"># You can determine if enew and Proj_{basis}(enew) were nearly equal by comparing norm and new_norm.</span>
+        <span class="c"># If new_norm is &lt;&lt; norm, then the orthogonal component is small, and they were nearly equal.</span>
+        <span class="k">if</span> <span class="n">new_norm</span><span class="o">/</span><span class="n">norm</span> <span class="o">&lt;=</span> <span class="n">a</span><span class="p">:</span>
+            <span class="c"># Repeat the while loop and</span>
+            <span class="c"># continue subtracting Proj_{basis}(enew) until enew is truly orthogonal to span(basis)</span>
+            <span class="n">norm</span> <span class="o">=</span> <span class="n">new_norm</span>
+            <span class="n">ctr</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">ctr</span> <span class="o">&gt;</span> <span class="n">max_iter</span><span class="p">:</span>
+                <span class="k">print</span> <span class="s">&quot;Max number of iterations (&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">max_iter</span><span class="p">)</span><span class="o">+</span><span class="s">&quot;) reached in iterated Gram-Schmidt. Basis may not be orthonormal.&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">flag</span> <span class="o">=</span> <span class="mi">1</span>
+    
+    <span class="c"># Return the new ortho*normal* basis function</span>
+    <span class="k">return</span> <span class="n">scalar_multiply</span><span class="p">(</span><span class="mf">1.0</span><span class="o">/</span><span class="n">new_norm</span><span class="p">,</span> <span class="n">e_new</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ReducedBasis"><a class="viewcode-back" href="../../cbcrom.html#cbcrom.greedy.ReducedBasis">[docs]</a><span class="k">class</span> <span class="nc">ReducedBasis</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Functions for generating a set of reduced basis waveforms with the greedy algorithm.</span>
+<span class="sd">    </span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    add_func</span>
+<span class="sd">    subtract_func</span>
+<span class="sd">    scalar_multiply_func</span>
+<span class="sd">    inner_product_func</span>
+<span class="sd">    get_waveform</span>
+<span class="sd">    ts_params</span>
+<span class="sd">    norms</span>
+<span class="sd">    inner_products</span>
+<span class="sd">    sigma_list</span>
+<span class="sd">    rb</span>
+<span class="sd">    rb_indices</span>
+<span class="sd">    rb_params</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">add_func</span><span class="p">,</span> <span class="n">subtract_func</span><span class="p">,</span> <span class="n">scalar_multiply_func</span><span class="p">,</span> <span class="n">inner_product_func</span><span class="p">,</span> <span class="n">get_waveform</span><span class="p">,</span> <span class="n">ts_params</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create an empty ReducedBasis object.</span>
+<span class="sd">        Define functions for addition, subtraction, scalar multiplication, inner product of waveforms.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        add : function(h1, h2)</span>
+<span class="sd">            Function that adds two waveforms.</span>
+<span class="sd">        subtract : function(h1, h2)</span>
+<span class="sd">            Function that subtracts two waveforms (h1-h2).</span>
+<span class="sd">        scalar_multiply : function(alpha, h)</span>
+<span class="sd">            Function that multiplies the waveform h by the scalar alpha.</span>
+<span class="sd">        inner_product : function(h1, h2)</span>
+<span class="sd">            Function that evaluates the inner product (scalar) of two waveforms.</span>
+<span class="sd">        get_waveform : function(i)</span>
+<span class="sd">            Function that fetches the waveform in the TrainingSet with index i</span>
+<span class="sd">        ts_params : 2d list</span>
+<span class="sd">            List of the waveform parameters</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># The waveform functions</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_func</span> <span class="o">=</span> <span class="n">add_func</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">subtract_func</span> <span class="o">=</span> <span class="n">subtract_func</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scalar_multiply_func</span> <span class="o">=</span> <span class="n">scalar_multiply_func</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inner_product_func</span> <span class="o">=</span> <span class="n">inner_product_func</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_waveform</span> <span class="o">=</span> <span class="n">get_waveform</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ts_params</span><span class="o">=</span><span class="n">ts_params</span>
+        
+        <span class="c"># The norm sqrt(&lt;hi|hi&gt;) for the training set</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">norms</span> <span class="o">=</span> <span class="bp">None</span>
+        
+        <span class="c"># List of inner products between the current reduced basis and the training set</span>
+        <span class="c"># Has shape N_RB X N_TS</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inner_products</span> <span class="o">=</span> <span class="bp">None</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">sigma_list</span> <span class="o">=</span> <span class="bp">None</span> <span class="c"># Greedy error</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rb</span> <span class="o">=</span> <span class="bp">None</span> <span class="c"># List of reduced basis waveforms</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rb_indices</span> <span class="o">=</span> <span class="bp">None</span> <span class="c"># Indices corresponding to the training set waveforms used to construct the RB</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rb_params</span> <span class="o">=</span> <span class="bp">None</span> <span class="c"># Waveform parameters corresponding to the training set waveforms rb_indices</span>
+    
+<div class="viewcode-block" id="ReducedBasis.normalize_waveform"><a class="viewcode-back" href="../../cbcrom.html#cbcrom.greedy.ReducedBasis.normalize_waveform">[docs]</a>    <span class="k">def</span> <span class="nf">normalize_waveform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">h</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Normalize the waveform h.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        norm : float</span>
+<span class="sd">        h_norm : The normalized waveform.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># The np.abs() just gets rid of the not-quite-numerically-zero imaginary part)</span>
+        <span class="n">norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inner_product_func</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">h</span><span class="p">)))</span>
+        <span class="k">return</span> <span class="n">norm</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">scalar_multiply_func</span><span class="p">(</span><span class="mf">1.0</span><span class="o">/</span><span class="n">norm</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="ReducedBasis.calculate_norms"><a class="viewcode-back" href="../../cbcrom.html#cbcrom.greedy.ReducedBasis.calculate_norms">[docs]</a>    <span class="k">def</span> <span class="nf">calculate_norms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Calculate the norms for each waveform in the training set</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="c"># The np.abs() just gets rid of the not-quite-numerically-zero imaginary part)</span>
+        <span class="n">Nts</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ts_params</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">norms</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inner_product_func</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_waveform</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_waveform</span><span class="p">(</span><span class="n">i</span><span class="p">))))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">Nts</span><span class="p">)]</span></div>
+    
+<div class="viewcode-block" id="ReducedBasis.set_initial_rb"><a class="viewcode-back" href="../../cbcrom.html#cbcrom.greedy.ReducedBasis.set_initial_rb">[docs]</a>    <span class="k">def</span> <span class="nf">set_initial_rb</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ts_index</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the initial RB waveform to be the one from the training set</span>
+<span class="sd">        with index ts_index.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        ts_istart : int</span>
+<span class="sd">            Index for the first RB waveform. 0th waveform in training set by default.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inner_products</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sigma_list</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rb_indices</span> <span class="o">=</span> <span class="p">[</span><span class="n">ts_index</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rb_params</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">ts_params</span><span class="p">[</span><span class="n">ts_index</span><span class="p">]]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rb</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">normalize_waveform</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_waveform</span><span class="p">(</span><span class="n">ts_index</span><span class="p">))[</span><span class="mi">1</span><span class="p">]]</span></div>
+    
+    <span class="k">def</span> <span class="nf">_append_inner_products</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Calculate the inner products between the training set waveforms h_i</span>
+<span class="sd">        and the newest RB waveform e_j. Then, append them to the inner_products list.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">Nts</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ts_params</span><span class="p">)</span>
+        <span class="n">Nrb</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rb</span><span class="p">)</span>
+        
+        <span class="n">h_i_dot_e_j</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">inner_product_func</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_waveform</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">rb</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">Nts</span><span class="p">)]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inner_products</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">h_i_dot_e_j</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_get_distances_from_current_rb</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Calculate the orthogonal distance between each member of the training set and the current RB.</span>
+<span class="sd">        Do this efficiently by using the already stored inner_products matrix,</span>
+<span class="sd">        so that you only have to calculate the inner products with the newest RB waveform e_j.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        distances : list of length Nts</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">Nts</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ts_params</span><span class="p">)</span>
+        <span class="n">Nrb</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rb</span><span class="p">)</span>
+        
+        <span class="c"># Calculate the inner products between the training set and the last RB waveform e_j.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_append_inner_products</span><span class="p">()</span>
+        
+        <span class="c"># Calculate the distance between each training set</span>
+        <span class="n">distances</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inner_products</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">i</span><span class="p">])</span><span class="o">**</span><span class="mi">2</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">Nrb</span><span class="p">)])</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">norms</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span>
+                     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">Nts</span><span class="p">)]</span>
+        <span class="k">return</span> <span class="n">distances</span>
+    
+<div class="viewcode-block" id="ReducedBasis.generate_new_basis_from_training_set"><a class="viewcode-back" href="../../cbcrom.html#cbcrom.greedy.ReducedBasis.generate_new_basis_from_training_set">[docs]</a>    <span class="k">def</span> <span class="nf">generate_new_basis_from_training_set</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Generate the next RB waveform from the most orthogonal member of the training set.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># Find the most orthogonal waveform in the training_set h_new</span>
+        <span class="n">distances</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_distances_from_current_rb</span><span class="p">()</span>
+        <span class="n">i_new</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">distances</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sigma_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">distances</span><span class="p">[</span><span class="n">i_new</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rb_indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i_new</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rb_params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ts_params</span><span class="p">[</span><span class="n">i_new</span><span class="p">])</span>
+        
+        <span class="c"># Generate the new RB element with the Gram-Schmidt orthonormalization process:</span>
+        <span class="c"># e_(j+1) = (h_new - Proj_{e_1...e_j}(h_new))/norm(h_new)</span>
+        <span class="n">h_new</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_waveform</span><span class="p">(</span><span class="n">i_new</span><span class="p">)</span>
+        <span class="n">e_new</span> <span class="o">=</span> <span class="n">add_basis_with_iterated_modified_gram_schmidt</span><span class="p">(</span><span class="n">h_new</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rb</span><span class="p">,</span>
+                                                              <span class="bp">self</span><span class="o">.</span><span class="n">add_func</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">subtract_func</span><span class="p">,</span>
+                                                              <span class="bp">self</span><span class="o">.</span><span class="n">scalar_multiply_func</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">inner_product_func</span><span class="p">,</span>
+                                                              <span class="n">a</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rb</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e_new</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="ReducedBasis.generate_new_basis_from_specific_waveform"><a class="viewcode-back" href="../../cbcrom.html#cbcrom.greedy.ReducedBasis.generate_new_basis_from_specific_waveform">[docs]</a>    <span class="k">def</span> <span class="nf">generate_new_basis_from_specific_waveform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ts_index</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Force the next RB waveform to be constructed from the waveform</span>
+<span class="sd">        in the training set with the index ts_index.</span>
+<span class="sd">        </span>
+<span class="sd">        Also, evaluates the inner product for the remaining training set waveforms,</span>
+<span class="sd">        since you will need them for later RB waveforms.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        ts_index : int</span>
+<span class="sd">            Index of the training set waveform you want to use.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># Calculate the inner products between the training set and the last RB waveform e_j.</span>
+        <span class="c">#self._append_inner_products()</span>
+        
+        <span class="c"># The greedy error is still the greatest distance over the entire training set</span>
+        <span class="c"># indexed by i_new, even though you choose the specific waveform ts[ts_index].</span>
+        <span class="n">distances</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_distances_from_current_rb</span><span class="p">()</span>
+        <span class="n">i_new</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">distances</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sigma_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">distances</span><span class="p">[</span><span class="n">i_new</span><span class="p">])</span>
+        
+        <span class="c"># Set the index and parameters for the new RB waveform</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rb_indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ts_index</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rb_params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ts_params</span><span class="p">[</span><span class="n">ts_index</span><span class="p">])</span>
+        
+        <span class="c"># Generate the new RB element with the Gram-Schmidt orthonormalization process:</span>
+        <span class="c"># e_(j+1) = (h_new - Proj_{e_1...e_j}(h_new))/norm(h_new)</span>
+        <span class="n">h_new</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_waveform</span><span class="p">(</span><span class="n">ts_index</span><span class="p">)</span>
+        <span class="n">e_new</span> <span class="o">=</span> <span class="n">add_basis_with_iterated_modified_gram_schmidt</span><span class="p">(</span><span class="n">h_new</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rb</span><span class="p">,</span>
+                                                              <span class="bp">self</span><span class="o">.</span><span class="n">add_func</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">subtract_func</span><span class="p">,</span>
+                                                              <span class="bp">self</span><span class="o">.</span><span class="n">scalar_multiply_func</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">inner_product_func</span><span class="p">,</span>
+                                                              <span class="n">a</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rb</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e_new</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="ReducedBasis.generate_reduced_basis"><a class="viewcode-back" href="../../cbcrom.html#cbcrom.greedy.ReducedBasis.generate_reduced_basis">[docs]</a>    <span class="k">def</span> <span class="nf">generate_reduced_basis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">,</span> <span class="n">ts_istart</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">Nbases</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Generate an orthonormal set of waveforms with the greedy algorithm.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        epsilon : float</span>
+<span class="sd">            The tolerance. Should be greater than 1.0e-14.</span>
+<span class="sd">        ts_istart : int</span>
+<span class="sd">            Index for the first RB waveform. 0th waveform in training set by default.</span>
+<span class="sd">        Nbases : int</span>
+<span class="sd">            Maximum number of bases to generate.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># Maximum number of bases</span>
+        <span class="k">if</span> <span class="n">Nbases</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">Nbases</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ts_params</span><span class="p">)</span>
+        
+        <span class="c"># Calculate the norms of all the training set waveforms</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">calculate_norms</span><span class="p">()</span>
+        
+        <span class="c"># Set the first RB waveform to be the (normalized) 1st element in the training set</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_initial_rb</span><span class="p">(</span><span class="n">ts_istart</span><span class="p">)</span>
+        <span class="k">print</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        
+        <span class="c"># Add new RB waveforms until the greedy error is &lt; epsilon</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">&gt;</span><span class="n">epsilon</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rb</span><span class="p">)</span><span class="o">&lt;</span><span class="n">Nbases</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">generate_new_basis_from_training_set</span><span class="p">()</span>
+            <span class="k">print</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span></div>
+    
+<div class="viewcode-block" id="ReducedBasis.generate_reduced_basis_start_with_set"><a class="viewcode-back" href="../../cbcrom.html#cbcrom.greedy.ReducedBasis.generate_reduced_basis_start_with_set">[docs]</a>    <span class="k">def</span> <span class="nf">generate_reduced_basis_start_with_set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">,</span> <span class="n">ts_initial_list</span><span class="p">,</span> <span class="n">Nbases</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Generate an orthonormal set of waveforms with the greedy algorithm.</span>
+<span class="sd">        the first waveforms in the RB are constructed from ts_initial_list</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        epsilon : float</span>
+<span class="sd">            The tolerance. Should be greater than 1.0e-14.</span>
+<span class="sd">        ts_initial_list : int</span>
+<span class="sd">            Indices of the waveforms required to be in the RB.</span>
+<span class="sd">        Nbases : int</span>
+<span class="sd">            Maximum number of bases to generate.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># Maximum number of bases</span>
+        <span class="k">if</span> <span class="n">Nbases</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">Nbases</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ts_params</span><span class="p">)</span>
+        
+        <span class="c"># Calculate the norms of all the training set waveforms</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">calculate_norms</span><span class="p">()</span>
+        
+        <span class="c"># Set the first RB waveform</span>
+        <span class="k">print</span> <span class="s">&#39;Using the requested waveforms.&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_initial_rb</span><span class="p">(</span><span class="n">ts_initial_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">print</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        
+        <span class="c"># Add new RB waveforms from the list ts_initial_list</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">ts_initial_list</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">generate_new_basis_from_specific_waveform</span><span class="p">(</span><span class="n">ts_initial_list</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="k">print</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        
+        <span class="c"># Add new RB waveforms until the greedy error is &lt; epsilon</span>
+        <span class="k">print</span> <span class="s">&#39;Now choosing waveforms with the greedy method.&#39;</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">&gt;</span><span class="n">epsilon</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rb</span><span class="p">)</span><span class="o">&lt;</span><span class="n">Nbases</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">generate_new_basis_from_training_set</span><span class="p">()</span>
+            <span class="k">print</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span></div></div>
+
+
+
+<span class="c">#class ReducedBasis:</span>
+<span class="c">#    &quot;&quot;&quot;</span>
+<span class="c">#        Functions for generating a set of reduced basis waveforms with the greedy algorithm.</span>
+<span class="c">#        &quot;&quot;&quot;</span>
+<span class="c">#    </span>
+<span class="c">#    def __init__(self, add_func, subtract_func, scalar_multiply_func, inner_product_func):</span>
+<span class="c">#        &quot;&quot;&quot;</span>
+<span class="c">#            Create an empty ReducedBasis object.</span>
+<span class="c">#            Define functions for addition, subtraction, scalar multiplication, inner product of waveforms.</span>
+<span class="c">#            </span>
+<span class="c">#            Parameters</span>
+<span class="c">#            ----------</span>
+<span class="c">#            add : function(h1, h2)</span>
+<span class="c">#            Function that adds two waveforms.</span>
+<span class="c">#            subtract : function(h1, h2)</span>
+<span class="c">#            Function that subtracts two waveforms (h1-h2).</span>
+<span class="c">#            scalar_multiply : function(alpha, h)</span>
+<span class="c">#            Function that multiplies the waveform h by the scalar alpha.</span>
+<span class="c">#            inner_product : function(h1, h2)</span>
+<span class="c">#            Function that evaluates the inner product (scalar) of two waveforms.</span>
+<span class="c">#            &quot;&quot;&quot;</span>
+<span class="c">#        </span>
+<span class="c">#        # The waveform functions</span>
+<span class="c">#        self.add_func = add_func</span>
+<span class="c">#        self.subtract_func = subtract_func</span>
+<span class="c">#        self.scalar_multiply_func = scalar_multiply_func</span>
+<span class="c">#        self.inner_product_func = inner_product_func</span>
+<span class="c">#        </span>
+<span class="c">#        # The norm sqrt(&lt;hi|hi&gt;) for the training set</span>
+<span class="c">#        self.norms = None</span>
+<span class="c">#        </span>
+<span class="c">#        # List of inner products between the current reduced basis and the training set</span>
+<span class="c">#        # Has shape N_RB X N_TS</span>
+<span class="c">#        self.inner_products = None</span>
+<span class="c">#        </span>
+<span class="c">#        self.ts = None</span>
+<span class="c">#        self.ts_params=None</span>
+<span class="c">#        </span>
+<span class="c">#        self.sigma_list = None # Greedy error</span>
+<span class="c">#        self.rb = None</span>
+<span class="c">#        self.rb_indices = None # Indices corresponding to the training set waveforms used to construct the RB</span>
+<span class="c">#        self.rb_params = None # Waveform parameters corresponding to the training set waveforms rb_indices</span>
+<span class="c">#    </span>
+<span class="c">#    </span>
+<span class="c">#    def set_training_set(self, ts, ts_params):</span>
+<span class="c">#        &quot;&quot;&quot;</span>
+<span class="c">#            List of waveforms for the training set.</span>
+<span class="c">#            &quot;&quot;&quot;</span>
+<span class="c">#        self.ts = ts</span>
+<span class="c">#        self.ts_params = ts_params</span>
+<span class="c">#    </span>
+<span class="c">#    </span>
+<span class="c">#    def normalize_waveform(self, h):</span>
+<span class="c">#        &quot;&quot;&quot;</span>
+<span class="c">#            Normalize the waveform h.</span>
+<span class="c">#            </span>
+<span class="c">#            Returns</span>
+<span class="c">#            -------</span>
+<span class="c">#            norm : float</span>
+<span class="c">#            h_norm : The normalized waveform.</span>
+<span class="c">#            &quot;&quot;&quot;</span>
+<span class="c">#        # The np.abs() just gets rid of the not-quite-numerically-zero imaginary part)</span>
+<span class="c">#        norm = np.sqrt(np.abs(self.inner_product_func(h, h)))</span>
+<span class="c">#        return norm, self.scalar_multiply_func(1.0/norm, h)</span>
+<span class="c">#    </span>
+<span class="c">#    def calculate_norms(self):</span>
+<span class="c">#        &quot;&quot;&quot;</span>
+<span class="c">#            Calculate the norms for each waveform in the training set</span>
+<span class="c">#            &quot;&quot;&quot;</span>
+<span class="c">#        </span>
+<span class="c">#        # The np.abs() just gets rid of the not-quite-numerically-zero imaginary part)</span>
+<span class="c">#        self.norms = [np.sqrt(np.abs(self.inner_product_func(self.ts[i], self.ts[i]))) for i in range(len(self.ts))]</span>
+<span class="c">#    </span>
+<span class="c">#    </span>
+<span class="c">#    </span>
+<span class="c">#    def set_initial_rb(self, ts_index):</span>
+<span class="c">#        &quot;&quot;&quot;</span>
+<span class="c">#            Set the initial RB waveform to be the one from the training set</span>
+<span class="c">#            with index ts_index.</span>
+<span class="c">#            </span>
+<span class="c">#            Parameters</span>
+<span class="c">#            ----------</span>
+<span class="c">#            ts_istart : int</span>
+<span class="c">#            Index for the first RB waveform. 0th waveform in training set by default.</span>
+<span class="c">#            &quot;&quot;&quot;</span>
+<span class="c">#        </span>
+<span class="c">#        self.inner_products = []</span>
+<span class="c">#        self.sigma_list = [1.0]</span>
+<span class="c">#        self.rb_indices = [ts_index]</span>
+<span class="c">#        self.rb_params = [self.ts_params[ts_index]]</span>
+<span class="c">#        self.rb = [self.normalize_waveform(self.ts[ts_index])[1]]</span>
+<span class="c">#    </span>
+<span class="c">#    </span>
+<span class="c">#    def _append_inner_products(self):</span>
+<span class="c">#        &quot;&quot;&quot;</span>
+<span class="c">#            Calculate the inner products between the training set waveforms h_i</span>
+<span class="c">#            and the newest RB waveform e_j. Then, append them to the inner_products list.</span>
+<span class="c">#            &quot;&quot;&quot;</span>
+<span class="c">#        </span>
+<span class="c">#        Nts = len(self.ts)</span>
+<span class="c">#        Nrb = len(self.rb)</span>
+<span class="c">#        </span>
+<span class="c">#        h_i_dot_e_j = [self.inner_product_func(self.ts[i], self.rb[-1]) for i in range(Nts)]</span>
+<span class="c">#        self.inner_products.append(h_i_dot_e_j)</span>
+<span class="c">#    </span>
+<span class="c">#    </span>
+<span class="c">#    def _get_distances_from_current_rb(self):</span>
+<span class="c">#        &quot;&quot;&quot;</span>
+<span class="c">#            Calculate the orthogonal distance between each member of the training set and the current RB.</span>
+<span class="c">#            Do this efficiently by using the already stored inner_products matrix,</span>
+<span class="c">#            so that you only have to calculate the inner products with the newest RB waveform e_j.</span>
+<span class="c">#            </span>
+<span class="c">#            Returns</span>
+<span class="c">#            -------</span>
+<span class="c">#            distances : list of length Nts</span>
+<span class="c">#            &quot;&quot;&quot;</span>
+<span class="c">#        </span>
+<span class="c">#        Nts = len(self.ts)</span>
+<span class="c">#        Nrb = len(self.rb)</span>
+<span class="c">#        </span>
+<span class="c">#        # Calculate the inner products between the training set and the last RB waveform e_j.</span>
+<span class="c">#        self._append_inner_products()</span>
+<span class="c">#        </span>
+<span class="c">#        # Calculate the distance between each training set</span>
+<span class="c">#        distances = [1.0 - np.sum([np.abs(self.inner_products[j][i])**2 for j in range(Nrb)])/self.norms[i]**2</span>
+<span class="c">#                     for i in range(Nts)]</span>
+<span class="c">#        return distances</span>
+<span class="c">#    </span>
+<span class="c">#    </span>
+<span class="c">#    def generate_new_basis_from_training_set(self):</span>
+<span class="c">#        &quot;&quot;&quot;</span>
+<span class="c">#            Generate the next RB waveform from the most orthogonal member of the training set.</span>
+<span class="c">#            &quot;&quot;&quot;</span>
+<span class="c">#        </span>
+<span class="c">#        # Find the most orthogonal waveform in the training_set h_new</span>
+<span class="c">#        distances = self._get_distances_from_current_rb()</span>
+<span class="c">#        i_new = np.argmax(distances)</span>
+<span class="c">#        self.sigma_list.append(distances[i_new])</span>
+<span class="c">#        self.rb_indices.append(i_new)</span>
+<span class="c">#        self.rb_params.append(self.ts_params[i_new])</span>
+<span class="c">#        </span>
+<span class="c">#        # Generate the new RB element with the Gram-Schmidt orthonormalization process:</span>
+<span class="c">#        # e_(j+1) = (h_new - Proj_{e_1...e_j}(h_new))/norm(h_new)</span>
+<span class="c">#        h_new = self.ts[i_new]</span>
+<span class="c">#        e_new = add_basis_with_iterated_modified_gram_schmidt(h_new, self.rb,</span>
+<span class="c">#                                                              self.add_func, self.subtract_func,</span>
+<span class="c">#                                                              self.scalar_multiply_func, self.inner_product_func,</span>
+<span class="c">#                                                              a=0.5, max_iter=3)</span>
+<span class="c">#        self.rb.append(e_new)</span>
+<span class="c">#    </span>
+<span class="c">#    </span>
+<span class="c">#    def generate_new_basis_from_specific_waveform(self, ts_index):</span>
+<span class="c">#        &quot;&quot;&quot;</span>
+<span class="c">#            Force the next RB waveform to be constructed from the waveform</span>
+<span class="c">#            in the training set with the index ts_index.</span>
+<span class="c">#            </span>
+<span class="c">#            Also, evaluates the inner product for the remaining training set waveforms,</span>
+<span class="c">#            since you will need them for later RB waveforms.</span>
+<span class="c">#            </span>
+<span class="c">#            Parameters</span>
+<span class="c">#            ----------</span>
+<span class="c">#            ts_index : int</span>
+<span class="c">#            Index of the training set waveform you want to use.</span>
+<span class="c">#            &quot;&quot;&quot;</span>
+<span class="c">#        </span>
+<span class="c">#        # Calculate the inner products between the training set and the last RB waveform e_j.</span>
+<span class="c">#        #self._append_inner_products()</span>
+<span class="c">#        </span>
+<span class="c">#        # The greedy error is still the greatest distance over the entire training set</span>
+<span class="c">#        # indexed by i_new, even though you choose the specific waveform ts[ts_index].</span>
+<span class="c">#        distances = self._get_distances_from_current_rb()</span>
+<span class="c">#        i_new = np.argmax(distances)</span>
+<span class="c">#        self.sigma_list.append(distances[i_new])</span>
+<span class="c">#        </span>
+<span class="c">#        # Set the index and parameters for the new RB waveform</span>
+<span class="c">#        self.rb_indices.append(ts_index)</span>
+<span class="c">#        self.rb_params.append(self.ts_params[ts_index])</span>
+<span class="c">#        </span>
+<span class="c">#        # Generate the new RB element with the Gram-Schmidt orthonormalization process:</span>
+<span class="c">#        # e_(j+1) = (h_new - Proj_{e_1...e_j}(h_new))/norm(h_new)</span>
+<span class="c">#        h_new = self.ts[ts_index]</span>
+<span class="c">#        e_new = add_basis_with_iterated_modified_gram_schmidt(h_new, self.rb,</span>
+<span class="c">#                                                              self.add_func, self.subtract_func,</span>
+<span class="c">#                                                              self.scalar_multiply_func, self.inner_product_func,</span>
+<span class="c">#                                                              a=0.5, max_iter=3)</span>
+<span class="c">#        self.rb.append(e_new)</span>
+<span class="c">#    </span>
+<span class="c">#    </span>
+<span class="c">#    def generate_reduced_basis(self, epsilon, ts, ts_params, ts_istart=0, Nbases=None):</span>
+<span class="c">#        &quot;&quot;&quot;</span>
+<span class="c">#            Generate an orthonormal set of waveforms with the greedy algorithm.</span>
+<span class="c">#            </span>
+<span class="c">#            Parameters</span>
+<span class="c">#            ----------</span>
+<span class="c">#            epsilon : float</span>
+<span class="c">#            The tolerance. Should be greater than 1.0e-14.</span>
+<span class="c">#            ts : List of TimeSeries</span>
+<span class="c">#            The training set</span>
+<span class="c">#            ts_params : list of parameters</span>
+<span class="c">#            List of parameters corresponding to the training set</span>
+<span class="c">#            ts_istart : int</span>
+<span class="c">#            Index for the first RB waveform. 0th waveform in training set by default.</span>
+<span class="c">#            Nbases : int</span>
+<span class="c">#            Maximum number of bases to generate.</span>
+<span class="c">#            &quot;&quot;&quot;</span>
+<span class="c">#        </span>
+<span class="c">#        # Maximum number of bases</span>
+<span class="c">#        if Nbases == None:</span>
+<span class="c">#            Nbases = len(ts)</span>
+<span class="c">#        </span>
+<span class="c">#        # Set the training set</span>
+<span class="c">#        self.set_training_set(ts, ts_params)</span>
+<span class="c">#        </span>
+<span class="c">#        # Calculate the norms of all the training set waveforms</span>
+<span class="c">#        self.calculate_norms()</span>
+<span class="c">#        </span>
+<span class="c">#        # Set the first RB waveform to be the (normalized) 1st element in the training set</span>
+<span class="c">#        self.set_initial_rb(ts_istart)</span>
+<span class="c">#        print self.sigma_list[-1]</span>
+<span class="c">#        </span>
+<span class="c">#        # Add new RB waveforms until the greedy error is &lt; epsilon</span>
+<span class="c">#        while self.sigma_list[-1]&gt;epsilon and len(self.rb)&lt;Nbases:</span>
+<span class="c">#            self.generate_new_basis_from_training_set()</span>
+<span class="c">#            print self.sigma_list[-1]</span>
+<span class="c">#    </span>
+<span class="c">#    </span>
+<span class="c">#    def generate_reduced_basis_start_with_set(self, epsilon, ts, ts_params, ts_initial_list, Nbases=None):</span>
+<span class="c">#        &quot;&quot;&quot;</span>
+<span class="c">#            Generate an orthonormal set of waveforms with the greedy algorithm.</span>
+<span class="c">#            the first waveforms in the RB are constructed from ts_initial_list</span>
+<span class="c">#            </span>
+<span class="c">#            Parameters</span>
+<span class="c">#            ----------</span>
+<span class="c">#            epsilon : float</span>
+<span class="c">#            The tolerance. Should be greater than 1.0e-14.</span>
+<span class="c">#            ts : List of TimeSeries</span>
+<span class="c">#            The training set</span>
+<span class="c">#            ts_params : list of parameters</span>
+<span class="c">#            List of parameters corresponding to the training set</span>
+<span class="c">#            ts_initial_list : int</span>
+<span class="c">#            Indices of the waveforms required to be in the RB.</span>
+<span class="c">#            Nbases : int</span>
+<span class="c">#            Maximum number of bases to generate.</span>
+<span class="c">#            &quot;&quot;&quot;</span>
+<span class="c">#        </span>
+<span class="c">#        # Maximum number of bases</span>
+<span class="c">#        if Nbases == None:</span>
+<span class="c">#            Nbases = len(ts)</span>
+<span class="c">#        </span>
+<span class="c">#        # Set the training set</span>
+<span class="c">#        self.set_training_set(ts, ts_params)</span>
+<span class="c">#        </span>
+<span class="c">#        # Calculate the norms of all the training set waveforms</span>
+<span class="c">#        self.calculate_norms()</span>
+<span class="c">#        </span>
+<span class="c">#        # Set the first RB waveform</span>
+<span class="c">#        print &#39;Using the requested waveforms.&#39;</span>
+<span class="c">#        self.set_initial_rb(ts_initial_list[0])</span>
+<span class="c">#        print self.sigma_list[-1]</span>
+<span class="c">#        </span>
+<span class="c">#        # Add new RB waveforms from the list ts_initial_list</span>
+<span class="c">#        for i in range(1, len(ts_initial_list)):</span>
+<span class="c">#            self.generate_new_basis_from_specific_waveform(ts_initial_list[i])</span>
+<span class="c">#            print self.sigma_list[-1]</span>
+<span class="c">#        </span>
+<span class="c">#        # Add new RB waveforms until the greedy error is &lt; epsilon</span>
+<span class="c">#        print &#39;Now choosing waveforms with the greedy method.&#39;</span>
+<span class="c">#        while self.sigma_list[-1]&gt;epsilon and len(self.rb)&lt;Nbases:</span>
+<span class="c">#            self.generate_new_basis_from_training_set()</span>
+<span class="c">#            print self.sigma_list[-1]</span>
+<span class="c">#</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Benjamin Lackey.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

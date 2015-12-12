@@ -1,0 +1,647 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>cbcrom.functionapproximation &mdash; cbcrom  documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="cbcrom  documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> cbcrom
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../cbcrom.html">cbcrom package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">cbcrom</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+    <li>cbcrom.functionapproximation</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for cbcrom.functionapproximation</h1><div class="highlight"><pre>
+<span class="c"># Copyright (C) 2015 Benjamin Lackey</span>
+<span class="c">#</span>
+<span class="c"># This program is free software; you can redistribute it and/or modify it</span>
+<span class="c"># under the terms of the GNU General Public License as published by the</span>
+<span class="c"># Free Software Foundation; either version 3 of the License, or (at your</span>
+<span class="c"># option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># This program is distributed in the hope that it will be useful, but</span>
+<span class="c"># WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General</span>
+<span class="c"># Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU General Public License along</span>
+<span class="c"># with this program; if not, write to the Free Software Foundation, Inc.,</span>
+<span class="c"># 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.</span>
+
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">scipy.optimize</span> <span class="kn">as</span> <span class="nn">optimize</span>
+<span class="kn">import</span> <span class="nn">scipy.interpolate</span>
+<span class="kn">import</span> <span class="nn">scipy.ndimage</span> <span class="c"># interpolation on a uniform grid</span>
+
+
+<div class="viewcode-block" id="fit_generator"><a class="viewcode-back" href="../../cbcrom.html#cbcrom.functionapproximation.fit_generator">[docs]</a><span class="k">def</span> <span class="nf">fit_generator</span><span class="p">(</span><span class="n">param_array</span><span class="p">,</span> <span class="n">data_array</span><span class="p">,</span> <span class="n">func</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate a function(params) that fits the data.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        param_array : 2d array</span>
+<span class="sd">        Parameter values.</span>
+<span class="sd">        data_array : 1d array</span>
+<span class="sd">        Function values at the corresponding parameter values.</span>
+<span class="sd">        func(params, *args) : function to use for the fitting</span>
+<span class="sd">        Params is 1d array of parameters.</span>
+<span class="sd">        *args are the coefficients.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        fit : function(params)</span>
+<span class="sd">        A function constructed from func using the best fit parameters.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+    
+    <span class="c">#     # curve_fit assumes that func can take an array of parameter values and return an array of function values</span>
+    <span class="c">#     # If func has conditional expressions, then this assumption will fail.</span>
+    <span class="c">#     # Use np.vectorize to fix this.</span>
+    <span class="c">#     func_wrapper = np.vectorize(func)</span>
+    <span class="c">#     coeffs, covariances = optimize.curve_fit(func_wrapper, param_array.T, data_array, maxfev=50000)</span>
+    <span class="n">coeffs</span><span class="p">,</span> <span class="n">covariances</span> <span class="o">=</span> <span class="n">optimize</span><span class="o">.</span><span class="n">curve_fit</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">param_array</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">data_array</span><span class="p">,</span> <span class="n">maxfev</span><span class="o">=</span><span class="mi">250000</span><span class="p">)</span>
+    <span class="c">#print coeffs</span>
+    <span class="c"># Return a function</span>
+    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="o">*</span><span class="n">coeffs</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">fit</span></div>
+
+
+<div class="viewcode-block" id="uniform_grid_interpolation_generator"><a class="viewcode-back" href="../../cbcrom.html#cbcrom.functionapproximation.uniform_grid_interpolation_generator">[docs]</a><span class="k">def</span> <span class="nf">uniform_grid_interpolation_generator</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">xmin</span><span class="p">,</span> <span class="n">xmax</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate a function of N parameters that interpolates a uniformly spaced Nd array.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        data : Nd array</span>
+<span class="sd">        Data to interpolate.</span>
+<span class="sd">        xmin : 1d array of length N</span>
+<span class="sd">        Minimum value of each parameter.</span>
+<span class="sd">        xmax : 1d array of length N</span>
+<span class="sd">        Maximum value of each parameter.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        </span>
+<span class="sd">        interp: function(x)</span>
+<span class="sd">        Interpolating function that takes x</span>
+<span class="sd">        (1d array of the parameter values at which you want to interpolate the data).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+    
+    <span class="c"># get number of points in each dimension</span>
+    <span class="n">Nx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">interp</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+        <span class="c"># rescale to pixel coordinates (0 to N-1 in each dimension)</span>
+        <span class="n">x_rescale</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span><span class="o">-</span><span class="n">xmin</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">Nx</span><span class="o">-</span><span class="mf">1.0</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">xmax</span><span class="o">-</span><span class="n">xmin</span><span class="p">)</span>
+        
+        <span class="c"># list of [[x], [y], [z], ...] coordinates for one point</span>
+        <span class="n">x_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">x_rescale</span><span class="p">])</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        
+        <span class="c"># interpolate using the function that assumes pixel coordinates</span>
+        <span class="c">#return scipy.ndimage.map_coordinates(data, x_list, order=order, mode=np.nan)[0]</span>
+        <span class="k">return</span> <span class="n">scipy</span><span class="o">.</span><span class="n">ndimage</span><span class="o">.</span><span class="n">map_coordinates</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">x_list</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="n">order</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;constant&#39;</span><span class="p">,</span> <span class="n">cval</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="c">#return scipy.ndimage.map_coordinates(data, x_list, order=order)[0]</span>
+    
+    <span class="k">return</span> <span class="n">interp</span></div>
+
+
+<div class="viewcode-block" id="unstructured_linear_interpolation_generator"><a class="viewcode-back" href="../../cbcrom.html#cbcrom.functionapproximation.unstructured_linear_interpolation_generator">[docs]</a><span class="k">def</span> <span class="nf">unstructured_linear_interpolation_generator</span><span class="p">(</span><span class="n">param_array</span><span class="p">,</span> <span class="n">data_array</span><span class="p">,</span> <span class="n">nearest_outside</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate a linear interpolating function(params) from an unstructured grid.</span>
+<span class="sd">        This is a wrapper for scipy.interpolate.LinearNDInterpolator.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        param_array : 2d array</span>
+<span class="sd">        Parameter values.</span>
+<span class="sd">        data_array : 1d array</span>
+<span class="sd">        Function values at the corresponding parameter values.</span>
+<span class="sd">        nearest_outside : {bool, True}</span>
+<span class="sd">        Do nearest neighor interpolation outside the convex hull if True.</span>
+<span class="sd">        Return nan if False.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        interp : function(params)</span>
+<span class="sd">        An inteprolating function.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+    
+    <span class="c"># This will return linear interpolation, but only in the convex hull</span>
+    <span class="n">linearinterp</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">interpolate</span><span class="o">.</span><span class="n">LinearNDInterpolator</span><span class="p">(</span><span class="n">param_array</span><span class="p">,</span> <span class="n">data_array</span><span class="p">)</span>
+    <span class="c"># This will return the nearest neighbor</span>
+    <span class="n">nearestinterp</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">interpolate</span><span class="o">.</span><span class="n">NearestNDInterpolator</span><span class="p">(</span><span class="n">param_array</span><span class="p">,</span> <span class="n">data_array</span><span class="p">)</span>
+    
+    <span class="c"># Return a function that chooses between linear and nearest neighbor interpolation</span>
+    <span class="k">def</span> <span class="nf">interp</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
+        <span class="n">linval</span> <span class="o">=</span> <span class="n">linearinterp</span><span class="p">(</span><span class="n">params</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">linval</span><span class="p">)</span> <span class="ow">and</span> <span class="n">nearest_outside</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">nearestinterp</span><span class="p">(</span><span class="n">params</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">linval</span>
+
+    <span class="k">return</span> <span class="n">interp</span></div>
+
+
+<div class="viewcode-block" id="amp_function_generator_from_list"><a class="viewcode-back" href="../../cbcrom.html#cbcrom.functionapproximation.amp_function_generator_from_list">[docs]</a><span class="k">def</span> <span class="nf">amp_function_generator_from_list</span><span class="p">(</span><span class="n">param_array</span><span class="p">,</span> <span class="n">amp_array</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate a function to fit and/or interpolate the amplitude from a list of values.</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        param_array : 2d arraylike</span>
+<span class="sd">        Array of the parameters at each point in the list.</span>
+<span class="sd">        amp_array : array</span>
+<span class="sd">        Amplitude at each point in the list.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        amp_function(params) : function</span>
+<span class="sd">        The amplitude function.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+    
+    <span class="c"># Do the fit</span>
+    <span class="k">return</span> <span class="n">fit_generator</span><span class="p">(</span><span class="n">param_array</span><span class="p">,</span> <span class="n">amp_array</span><span class="p">,</span> <span class="n">rational_amp_fit</span><span class="p">)</span></div>
+
+<span class="c"># Do linear interpolation on nonuniform grid</span>
+<span class="c">#return unstructured_linear_interpolation_generator(param_array, amp_array)</span>
+
+<span class="c"># do both fit and interpolation</span>
+<span class="c">#     def amp_function(params):</span>
+<span class="c">#         rough_amp_fit_func = fit_generator(param_array, amp_array, rational_amp_fit)</span>
+<span class="c">#         rough_fit_array = np.array([rough_amp_fit_func(p) for p in param_array])</span>
+<span class="c">#         interp_function = unstructured_linear_interpolation_generator(param_array, amp_array/rough_fit_array)</span>
+<span class="c">#         return rough_amp_fit_func(params)*interp_function(params)</span>
+<span class="c">#     return amp_function</span>
+
+
+<div class="viewcode-block" id="phase_function_generator_from_list"><a class="viewcode-back" href="../../cbcrom.html#cbcrom.functionapproximation.phase_function_generator_from_list">[docs]</a><span class="k">def</span> <span class="nf">phase_function_generator_from_list</span><span class="p">(</span><span class="n">param_array</span><span class="p">,</span> <span class="n">phase_array</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate a function to fit and/or interpolate the phase from a list of values.</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        param_array : 2d arraylike</span>
+<span class="sd">        Array of the parameters at each point in the list.</span>
+<span class="sd">        phase_array : array</span>
+<span class="sd">        Phase at each point in the list.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        phase_function(params) : function</span>
+<span class="sd">        The phase function.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+    
+    <span class="c">#Do the fit</span>
+    <span class="k">return</span> <span class="n">fit_generator</span><span class="p">(</span><span class="n">param_array</span><span class="p">,</span> <span class="n">phase_array</span><span class="p">,</span> <span class="n">rational_phase_fit</span><span class="p">)</span></div>
+
+<span class="c"># Do linear interpolation on nonuniform grid</span>
+<span class="c">#return unstructured_linear_interpolation_generator(param_array, phase_array)</span>
+
+<span class="c"># do both fit and interpolation</span>
+<span class="c">#     def phase_function(params):</span>
+<span class="c">#         rough_phase_fit_func = fit_generator(param_array, phase_array, rational_phase_fit)</span>
+<span class="c">#         rough_fit_array = np.array([rough_phase_fit_func(p) for p in param_array])</span>
+<span class="c">#         interp_function = unstructured_linear_interpolation_generator(param_array, phase_array/rough_fit_array)</span>
+<span class="c">#         return rough_phase_fit_func(params)*interp_function(params)</span>
+<span class="c">#     return phase_function</span>
+
+
+<div class="viewcode-block" id="amp_phase_functions_from_list_at_empirical_nodes"><a class="viewcode-back" href="../../cbcrom.html#cbcrom.functionapproximation.amp_phase_functions_from_list_at_empirical_nodes">[docs]</a><span class="k">def</span> <span class="nf">amp_phase_functions_from_list_at_empirical_nodes</span><span class="p">(</span><span class="n">param_array</span><span class="p">,</span> <span class="n">amp_at_nodes</span><span class="p">,</span> <span class="n">phase_at_nodes</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate interpolating functions for amp and phase at each of the empirical_nodes T_i.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        param_array : 2d arraylike</span>
+<span class="sd">        Array of the parameters at each point in the list.</span>
+<span class="sd">        amp_at_nodes : 2d array</span>
+<span class="sd">        Amplitude at the empirical_nodes for each set of parameters.</span>
+<span class="sd">        phase_at_nodes : 2d array</span>
+<span class="sd">        Phase at the empirical_nodes for each set of parameters.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        amp_function_list : List of interpolating functions</span>
+<span class="sd">        List of interpolating functions for the amplitude at the empirical_nodes.</span>
+<span class="sd">        phase_function_list : List of arrays</span>
+<span class="sd">        List of interpolating functions for the phase at the empirical_nodes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+    
+    <span class="c"># Number of empirical nodes T_i</span>
+    <span class="n">Nnodes</span> <span class="o">=</span> <span class="n">amp_at_nodes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    
+    <span class="c"># Generate amp(params) function at each empirical node</span>
+    <span class="n">amp_function_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">nodei</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">Nnodes</span><span class="p">):</span>
+        <span class="k">print</span> <span class="n">nodei</span><span class="p">,</span>
+        <span class="n">amp_array</span> <span class="o">=</span> <span class="n">amp_at_nodes</span><span class="p">[:,</span> <span class="n">nodei</span><span class="p">]</span>
+        <span class="n">amp_function</span> <span class="o">=</span> <span class="n">amp_function_generator_from_list</span><span class="p">(</span><span class="n">param_array</span><span class="p">,</span> <span class="n">amp_array</span><span class="p">)</span>
+        <span class="n">amp_function_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">amp_function</span><span class="p">)</span>
+    
+    <span class="c"># Generate phase(params) function at each empirical node</span>
+    <span class="n">phase_function_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">nodei</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">Nnodes</span><span class="p">):</span>
+        <span class="k">print</span> <span class="n">nodei</span><span class="p">,</span>
+        <span class="n">phase_array</span> <span class="o">=</span> <span class="n">phase_at_nodes</span><span class="p">[:,</span> <span class="n">nodei</span><span class="p">]</span>
+        <span class="n">phase_function</span> <span class="o">=</span> <span class="n">phase_function_generator_from_list</span><span class="p">(</span><span class="n">param_array</span><span class="p">,</span> <span class="n">phase_array</span><span class="p">)</span>
+        <span class="n">phase_function_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">phase_function</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">amp_function_list</span><span class="p">,</span> <span class="n">phase_function_list</span></div>
+
+
+<span class="c"># def amp_function_generator(param_grid, amp_grid):</span>
+<span class="c">#     &quot;&quot;&quot;</span>
+<span class="c">#     Parameters</span>
+<span class="c">#     ----------</span>
+<span class="c">#     param_grid : (N+1)d array</span>
+<span class="c">#         The N Parameter values at each point on the parameter grid.</span>
+<span class="c">#     amp_grid : Nd array</span>
+<span class="c">#         Amplitude at each point on the parameter grid.</span>
+
+<span class="c">#     Returns</span>
+<span class="c">#     -------</span>
+<span class="c">#     amp_function(params) : function</span>
+<span class="c">#         The amplitude function that passes through the amp_grid data at the points in param_grid.</span>
+<span class="c">#     &quot;&quot;&quot;</span>
+
+<span class="c">#     # Flatten param_grid and amp_grid for the fitting function</span>
+<span class="c">#     Nparams = param_grid.shape[-1]</span>
+<span class="c">#     Npoints = product(list(param_grid.shape)[:-1])</span>
+<span class="c">#     param_array = param_grid.reshape((Npoints, Nparams))</span>
+<span class="c">#     amp_array = amp_grid.flatten()</span>
+
+<span class="c">#     # Do the fit</span>
+<span class="c">#     return fit_generator(param_array, amp_array, rational_amp_fit)</span>
+
+
+<span class="c"># def amp_function_generator(param_grid, amp_grid):</span>
+<span class="c">#     &quot;&quot;&quot;</span>
+<span class="c">#     Parameters</span>
+<span class="c">#     ----------</span>
+<span class="c">#     param_grid : (N+1)d array</span>
+<span class="c">#         The N Parameter values at each point on the parameter grid.</span>
+<span class="c">#     amp_grid : Nd array</span>
+<span class="c">#         Amplitude at each point on the parameter grid.</span>
+
+<span class="c">#     Returns</span>
+<span class="c">#     -------</span>
+<span class="c">#     amp_function(params) : function</span>
+<span class="c">#         The amplitude function that passes through the amp_grid data at the points in param_grid.</span>
+<span class="c">#     &quot;&quot;&quot;</span>
+
+<span class="c">#     # Flatten param_grid and amp_grid for the fitting function</span>
+<span class="c">#     Nparams = param_grid.shape[-1]</span>
+<span class="c">#     params_min = param_grid[tuple([0]*Nparams)]</span>
+<span class="c">#     params_max = param_grid[tuple([-1]*Nparams)]</span>
+
+<span class="c">#     Npoints = product(list(param_grid.shape)[:-1])</span>
+<span class="c">#     param_array = param_grid.reshape((Npoints, Nparams))</span>
+<span class="c">#     amp_array = amp_grid.flatten()</span>
+
+<span class="c">#     # Do the fit</span>
+<span class="c">#     rough_amp_fit_func = fit_generator(param_array, amp_array, rational_amp_fit)</span>
+
+<span class="c">#     # Evaluate the fit at each point in param_array</span>
+<span class="c">#     rough_fit_array = np.array([rough_amp_fit_func(p) for p in param_array])</span>
+
+<span class="c">#     # Convert flattened array into grid</span>
+<span class="c">#     rough_fit_grid = rough_fit_array.reshape(amp_grid.shape)</span>
+
+<span class="c">#     # Interpolate the quantity amp_grid/rough_fit_grid</span>
+<span class="c">#     interp_function = uniform_grid_interpolation_generator(amp_grid/rough_fit_grid, params_min, params_max, order=2)</span>
+
+<span class="c">#     def amp_function(params):</span>
+<span class="c">#         return rough_amp_fit_func(params)*interp_function(params)</span>
+
+<span class="c">#     return amp_function</span>
+
+
+<div class="viewcode-block" id="amp_function_generator"><a class="viewcode-back" href="../../cbcrom.html#cbcrom.functionapproximation.amp_function_generator">[docs]</a><span class="k">def</span> <span class="nf">amp_function_generator</span><span class="p">(</span><span class="n">param_grid</span><span class="p">,</span> <span class="n">amp_grid</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        param_grid : (N+1)d array</span>
+<span class="sd">        The N Parameter values at each point on the parameter grid.</span>
+<span class="sd">        amp_grid : Nd array</span>
+<span class="sd">        Amplitude at each point on the parameter grid.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        amp_function(params) : function</span>
+<span class="sd">        The amplitude function that passes through the amp_grid data at the points in param_grid.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+    
+    <span class="c"># Flatten param_grid and amp_grid for the fitting function</span>
+    <span class="n">Nparams</span> <span class="o">=</span> <span class="n">param_grid</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">params_min</span> <span class="o">=</span> <span class="n">param_grid</span><span class="p">[</span><span class="nb">tuple</span><span class="p">([</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">Nparams</span><span class="p">)]</span>
+    <span class="n">params_max</span> <span class="o">=</span> <span class="n">param_grid</span><span class="p">[</span><span class="nb">tuple</span><span class="p">([</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">Nparams</span><span class="p">)]</span>
+    
+    <span class="c"># Interpolate the quantity amp_grid/rough_fit_grid</span>
+    <span class="n">interp_function</span> <span class="o">=</span> <span class="n">uniform_grid_interpolation_generator</span><span class="p">(</span><span class="n">amp_grid</span><span class="p">,</span> <span class="n">params_min</span><span class="p">,</span> <span class="n">params_max</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">interp_function</span></div>
+
+
+<span class="c"># def phase_function_generator(param_grid, phase_grid):</span>
+<span class="c">#     &quot;&quot;&quot;</span>
+<span class="c">#     Parameters</span>
+<span class="c">#     ----------</span>
+<span class="c">#     param_grid : (N+1)d array</span>
+<span class="c">#         The N Parameter values at each point on the parameter grid.</span>
+<span class="c">#     phase_grid : Nd array</span>
+<span class="c">#         phase at each point on the parameter grid.</span>
+
+<span class="c">#     Returns</span>
+<span class="c">#     -------</span>
+<span class="c">#     phase_function(params) : function</span>
+<span class="c">#         The phase function that passes through the phase_grid data at the points in param_grid.</span>
+<span class="c">#     &quot;&quot;&quot;</span>
+
+<span class="c">#     # Flatten param_grid and phase_grid for the fitting function</span>
+<span class="c">#     Nparams = param_grid.shape[-1]</span>
+<span class="c">#     params_min = param_grid[tuple([0]*Nparams)]</span>
+<span class="c">#     params_max = param_grid[tuple([-1]*Nparams)]</span>
+
+<span class="c">#     Npoints = product(list(param_grid.shape)[:-1])</span>
+<span class="c">#     param_array = param_grid.reshape((Npoints, Nparams))</span>
+<span class="c">#     phase_array = phase_grid.flatten()</span>
+
+<span class="c">#     # Do the fit</span>
+<span class="c">#     rough_phase_fit_func = fit_generator(param_array, phase_array, rational_phase_fit)</span>
+
+<span class="c">#     # Evaluate the fit at each point in param_array</span>
+<span class="c">#     rough_fit_array = np.array([rough_phase_fit_func(p) for p in param_array])</span>
+
+<span class="c">#     # Convert flattened array into grid</span>
+<span class="c">#     rough_fit_grid = rough_fit_array.reshape(phase_grid.shape)</span>
+
+<span class="c">#     # Interpolate the quantity phase_grid/rough_fit_grid</span>
+<span class="c">#     interp_function = uniform_grid_interpolation_generator(phase_grid/rough_fit_grid, params_min, params_max, order=2)</span>
+
+<span class="c">#     def phase_function(params):</span>
+<span class="c">#         return rough_phase_fit_func(params)*interp_function(params)</span>
+
+<span class="c">#     return phase_function</span>
+
+
+<div class="viewcode-block" id="phase_function_generator"><a class="viewcode-back" href="../../cbcrom.html#cbcrom.functionapproximation.phase_function_generator">[docs]</a><span class="k">def</span> <span class="nf">phase_function_generator</span><span class="p">(</span><span class="n">param_grid</span><span class="p">,</span> <span class="n">phase_grid</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        param_grid : (N+1)d array</span>
+<span class="sd">        The N Parameter values at each point on the parameter grid.</span>
+<span class="sd">        phase_grid : Nd array</span>
+<span class="sd">        phase at each point on the parameter grid.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        phase_function(params) : function</span>
+<span class="sd">        The phase function that passes through the phase_grid data at the points in param_grid.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+    
+    <span class="c"># Flatten param_grid and phase_grid for the fitting function</span>
+    <span class="n">Nparams</span> <span class="o">=</span> <span class="n">param_grid</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">params_min</span> <span class="o">=</span> <span class="n">param_grid</span><span class="p">[</span><span class="nb">tuple</span><span class="p">([</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">Nparams</span><span class="p">)]</span>
+    <span class="n">params_max</span> <span class="o">=</span> <span class="n">param_grid</span><span class="p">[</span><span class="nb">tuple</span><span class="p">([</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">Nparams</span><span class="p">)]</span>
+    
+    <span class="c"># Interpolate the quantity phase_grid/rough_fit_grid</span>
+    <span class="n">interp_function</span> <span class="o">=</span> <span class="n">uniform_grid_interpolation_generator</span><span class="p">(</span><span class="n">phase_grid</span><span class="p">,</span> <span class="n">params_min</span><span class="p">,</span> <span class="n">params_max</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">interp_function</span></div>
+
+
+<div class="viewcode-block" id="amp_phase_functions_from_uniform_grid_at_empirical_nodes"><a class="viewcode-back" href="../../cbcrom.html#cbcrom.functionapproximation.amp_phase_functions_from_uniform_grid_at_empirical_nodes">[docs]</a><span class="k">def</span> <span class="nf">amp_phase_functions_from_uniform_grid_at_empirical_nodes</span><span class="p">(</span><span class="n">param_grid</span><span class="p">,</span> <span class="n">amp_at_nodes_grid</span><span class="p">,</span> <span class="n">phase_at_nodes_grid</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate interpolating functions for amp and phase at each of the empirical_nodes T_i.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        param_grid : (N+1)d array</span>
+<span class="sd">        The N Parameter values at each point on the parameter grid.</span>
+<span class="sd">        amp_at_nodes_grid : (N+1)d array</span>
+<span class="sd">        Amplitude at the empirical_nodes at each point on the parameter grid.</span>
+<span class="sd">        phase_at_nodes_grid : (N+1)d array</span>
+<span class="sd">        Phase at the empirical_nodes at each point on the parameter grid.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        amp_function_list : List of interpolating functions</span>
+<span class="sd">        List of interpolating functions for the amplitude at the empirical_nodes.</span>
+<span class="sd">        phase_function_list : List of arrays</span>
+<span class="sd">        List of interpolating functions for the phase at the empirical_nodes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+    
+    <span class="c"># Number of empirical nodes T_i</span>
+    <span class="n">Nnodes</span> <span class="o">=</span> <span class="n">amp_at_nodes_grid</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    
+    <span class="c"># Generate amp(params) function at each empirical node</span>
+    <span class="n">amp_function_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">nodei</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">Nnodes</span><span class="p">):</span>
+        <span class="k">print</span> <span class="n">nodei</span><span class="p">,</span>
+        <span class="n">amp_grid</span> <span class="o">=</span> <span class="n">amp_at_nodes_grid</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">nodei</span><span class="p">]</span>
+        <span class="n">amp_function</span> <span class="o">=</span> <span class="n">amp_function_generator</span><span class="p">(</span><span class="n">param_grid</span><span class="p">,</span> <span class="n">amp_grid</span><span class="p">)</span>
+        <span class="n">amp_function_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">amp_function</span><span class="p">)</span>
+    
+    <span class="c"># Generate phase(params) function at each empirical node</span>
+    <span class="n">phase_function_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">nodei</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">Nnodes</span><span class="p">):</span>
+        <span class="k">print</span> <span class="n">nodei</span><span class="p">,</span>
+        <span class="n">phase_grid</span> <span class="o">=</span> <span class="n">phase_at_nodes_grid</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">nodei</span><span class="p">]</span>
+        <span class="n">phase_function</span> <span class="o">=</span> <span class="n">phase_function_generator</span><span class="p">(</span><span class="n">param_grid</span><span class="p">,</span> <span class="n">phase_grid</span><span class="p">)</span>
+        <span class="n">phase_function_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">phase_function</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">amp_function_list</span><span class="p">,</span> <span class="n">phase_function_list</span></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Benjamin Lackey.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
