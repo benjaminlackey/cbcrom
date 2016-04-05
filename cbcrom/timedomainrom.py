@@ -238,7 +238,8 @@ def reduced_order_model_physical_units(Bamp_j, Bphase_j, amp_function_list, phas
     # Get times in seconds
     mtot = (mass1+mass2)*MSUN_SI
     time_phys = h.time*G_SI*mtot/C_SI**3
-    
+    eta = mass1*mass2/(mass1+mass2)**2
+
     order = 3
     ampoft = scipy.interpolate.UnivariateSpline(time_phys, h.amp, k=order, s=0)
     phaseoft = scipy.interpolate.UnivariateSpline(time_phys, h.phase, k=order, s=0)
@@ -259,10 +260,13 @@ def reduced_order_model_physical_units(Bamp_j, Bphase_j, amp_function_list, phas
     phase_res -= phase_res[0]
     
     # Rescale amplitude
-    h22_to_h = np.sqrt(5.0/np.pi)/8.0
+    #h22_to_h = np.sqrt(5.0/np.pi)/8.0
+    #amp_units = G_SI*mtot/(C_SI**2*distance*MPC_SI)
+    #amp_rescale = amp_units*h22_to_h*amp_res
+    h22_to_h = 4.0*eta*np.sqrt(5.0/np.pi)/8.0
     amp_units = G_SI*mtot/(C_SI**2*distance*MPC_SI)
     amp_rescale = amp_units*h22_to_h*amp_res
-    
+
     # Adjust for inclination angle [0, pi]
     inc_plus = (1.0+np.cos(inclination)**2)/2.0
     inc_cross = np.cos(inclination)
@@ -336,7 +340,8 @@ class ReducedOrderModelTimeDomainWaveform:
 
 
 def load_reduced_order_model_time_domain_waveform(Bamp_filename, Bphase_filename, memb_size,
-                                                  ampcoeff_filename, phasecoeff_filename):
+                                                  ampcoeff_filename, phasecoeff_filename, 
+                                                  logamp=False, logphase=False):
     """Load a ROM from hdf5 files.
     """
     # Extract lists of Bamp and Bphase interpolating functions(time)
@@ -352,9 +357,9 @@ def load_reduced_order_model_time_domain_waveform(Bamp_filename, Bphase_filename
     phase_coeff_list, params_min, params_max = cheb.load_chebyshev_coefficients_list(phasecoeff_filename)
     
     # Generate the amplitude and phase functions(params)
-    amp_function_list = [cheb.chebyshev_interpolation3d_generator(amp_coeff_list[i], params_min, params_max) 
+    amp_function_list = [cheb.chebyshev_interpolation3d_generator(amp_coeff_list[i], params_min, params_max, log=logamp) 
                          for i in range(len(amp_coeff_list))]
-    phase_function_list = [cheb.chebyshev_interpolation3d_generator(phase_coeff_list[i], params_min, params_max) 
+    phase_function_list = [cheb.chebyshev_interpolation3d_generator(phase_coeff_list[i], params_min, params_max, log=logphase) 
                            for i in range(len(phase_coeff_list))]
     
     return ReducedOrderModelTimeDomainWaveform(Bamp_list, Bphase_list, amp_function_list, phase_function_list)

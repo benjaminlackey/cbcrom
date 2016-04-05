@@ -94,6 +94,78 @@ def subtract_projection(h_new, orthonorm_list, add, subtract, scalar_multiply, i
     proj_onto_span = projection(h_new, orthonorm_list, add, scalar_multiply, inner_product)
     return subtract(h_new, proj_onto_span)
 
+def projection_from_precalculated_inner_products(h_new, orthonorm_list, add, scalar_multiply, inner_product_list):
+    """Calculate Proj(h_new) = sum c_i * e_i,
+    where e_i = orthonorm_list[i],
+    and c_i = < hnew | e_i >.
+    This is the projection of a waveform hnew onto a vector space
+    formed by the *orthonormal* basis orthonorm_list.
+    
+    Parameters
+    ----------
+    orthonorm_list : List of basis vector waveforms.
+        Set of *orthogonal* and *normalized* waveforms.
+    h_new :
+        A New waveform.
+    add : function(h1, h2)
+        Function that adds two waveforms.
+    scalar_multiply : function(alpha, h)
+        Function that multiplies the waveform h by the scalar alpha.
+    inner_product_list : array
+        List of inner products between h_new and orthonorm_list.
+        
+    Returns
+    -------
+    proj_onto_span :
+        Proj(h_new).
+    """
+    # Dimension of subspace spanned by the vectors orthonorm_list
+    Nbases = len(orthonorm_list)
+    
+    # Coefficients for inner product between hnew and the other waveforms
+    # c_i = < hnew | hnorm_i >
+    coeff_vec = inner_product_list
+    
+    # Calculate projection of hnew onto span(orthonorm_list)
+    # Allocate memory for the new waveform
+    # !!!!!!!! This could be replaced by a function called matrix_vector_multiply !!!!!!!! if this is too slow.
+    proj_onto_span = scalar_multiply(coeff_vec[0], orthonorm_list[0])
+    for i in range(1, Nbases):
+        # Accumulate: proj = proj + c_i*e_i
+        proj_onto_span = add(proj_onto_span, scalar_multiply(coeff_vec[i], orthonorm_list[i]))
+    
+    return proj_onto_span
+
+
+def subtract_projection_from_precalculated_inner_products(h_new, orthonorm_list, add, subtract, scalar_multiply, inner_product_list):
+    """Calculate h_new - Proj(h_new):
+    The component of hnew orthogonal to the
+    projection of hnew onto the vector space
+    formed by the *orthonormal* basis orthonorm_list.
+        
+    Parameters
+    ----------
+    orthonorm_list : List of basis vector waveforms.
+        Set of *orthogonal* and *normalized* waveforms.
+    h_new :
+        A New waveform.
+    add : function(h1, h2)
+        Function that adds two waveforms.
+    subtract : function(h1, h2)
+        Function that subtracts two waveforms (h1-h2).
+    scalar_multiply : function(alpha, h)
+        Function that multiplies the waveform h by the scalar alpha.
+    inner_product_list : array
+        List of inner products between h_new and orthonorm_list.
+    
+    Returns
+    -------
+    diff :
+        h_new - Proj(h_new)
+    """
+    proj_onto_span = projection_from_precalculated_inner_products(h_new, orthonorm_list, add, scalar_multiply, inner_product_list)
+    return subtract(h_new, proj_onto_span)
+
 
 def add_basis_with_iterated_modified_gram_schmidt(h, basis, add, subtract, scalar_multiply, inner_product, a=0.5, max_iter=3):
     """Given a function h, find the corresponding basis function orthonormal to all previous ones.
@@ -163,6 +235,7 @@ class ReducedBasis:
     rb_params
     """
     
+    #def __init__(self, add_func, subtract_func, scalar_multiply_func, inner_product_func, abs_max_func, get_waveform, ts_params):
     def __init__(self, add_func, subtract_func, scalar_multiply_func, inner_product_func, get_waveform, ts_params):
         """Create an empty ReducedBasis object.
         Define functions for addition, subtraction, scalar multiplication, inner product of waveforms.
@@ -187,6 +260,7 @@ class ReducedBasis:
         self.subtract_func = subtract_func
         self.scalar_multiply_func = scalar_multiply_func
         self.inner_product_func = inner_product_func
+        #self.abs_max_func = abs_max_func
         self.get_waveform = get_waveform
         self.ts_params=ts_params
         
@@ -268,6 +342,35 @@ class ReducedBasis:
                      for i in range(Nts)]
         return distances
     
+#    def _get_distances_from_current_rb(self):
+#        """Calculate the orthogonal distance between each member of the training set and the current RB.
+#        Do this efficiently by using the already stored inner_products matrix,
+#        so that you only have to calculate the inner products with the newest RB waveform e_j.
+#        
+#        Returns
+#        -------
+#        distances : list of length Nts
+#        """
+#        
+#        Nts = len(self.ts_params)
+#        Nrb = len(self.rb)
+#        
+#        # Calculate the inner products between the training set and the last RB waveform e_j.
+#        self._append_inner_products()
+#
+#        # Calculate the distance between each training set
+#        distances = []
+#        for i in range(Nts):
+#            h_new = self.get_waveform(i)
+#            inner_product_list = np.array(self.inner_products)[:, i]
+#            difference = subtract_projection_from_precalculated_inner_products(h_new, 
+#                self.rb, self.add_func, self.subtract_func, self.scalar_multiply_func, inner_product_list)
+#            # Calculate the L_infty norm             
+#            abs_max_distance = self.abs_max_func(difference)/self.abs_max_func(h_new)
+#            distances.append(abs_max_distance)
+#
+#        return distances
+
     def generate_new_basis_from_training_set(self):
         """Generate the next RB waveform from the most orthogonal member of the training set.
         """

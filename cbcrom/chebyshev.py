@@ -349,7 +349,7 @@ class ChebyshevApproximation:
 ################################################################################
 
 
-def chebyshev_interpolation3d_generator(coefficients, params_min, params_max):
+def chebyshev_interpolation3d_generator(coefficients, params_min, params_max, log=False):
     """Generate a function of N parameters that interpolates a uniformly spaced Nd array.
     
     Parameters
@@ -371,7 +371,10 @@ def chebyshev_interpolation3d_generator(coefficients, params_min, params_max):
     cheb_approx.Ndim = 3
     cheb_approx.coefficients = coefficients
     def interp(params):
-        return cheb_approx.interpolation(params[0], params[1], params[2])
+        if log == True:
+            return np.exp(cheb_approx.interpolation(params[0], params[1], params[2]))
+        else:
+            return cheb_approx.interpolation(params[0], params[1], params[2])
     
     return interp
 

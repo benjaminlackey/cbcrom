@@ -105,7 +105,7 @@ class TimeDomainWaveform:
         """
         # Check that t_start and t_end are in the range of self.time
         if t<self.time[0] or t>self.time[-1]:
-            raise Exception, 't_start and t_end must be in the range of self.time' 
+            raise Exception, 'Time t must be in the range of self.time' 
             
         # Interpolate amp(time) and phase(time)
         ampoft = scipy.interpolate.UnivariateSpline(self.time, self.amp, k=order, s=0)
@@ -119,11 +119,74 @@ class TimeDomainWaveform:
         self.amp = np.insert(self.amp, i_insert, a)
         self.phase = np.insert(self.phase, i_insert, p)
     
-    # !!!!!!! TODO: !!!!!!!
-    # Turn this into 3 separate functions to resample
-    # 1. Uniform in time.
-    # 2. Uniform in phase.
-    # 3. A specific list of times.
+    def remove_decreasing_phase(self):
+        """Remove data from the end of the waveform if the phase starts to decrease.
+        """
+        if any([self.phase[i]>=self.phase[i+1] for i in range(len(self.phase)-1)]):
+            i_end_mono = next(i for i in range(len(self.phase)-1) if self.phase[i]>=self.phase[i+1])
+            self.time = self.time[:i_end_mono+1]
+            self.amp = self.amp[:i_end_mono+1]
+            self.phase = self.phase[:i_end_mono+1]
+            t_end = self.time[i_end_mono]
+    
+    def resample_at_times(self, time_new, order=2):
+        """Resample the waveform at specific times in the array time_new.
+        """
+        # Check that t_start and t_end are in the range of self.time
+        if time_new[0]<self.time[0] or time_new[-1]>self.time[-1]:
+            raise Exception, 'The array time_new must be in the range of self.time.'
+
+        # Interpolate amp(time) and phase(time)
+        ampoft = scipy.interpolate.UnivariateSpline(self.time, self.amp, k=order, s=0)
+        phaseoft = scipy.interpolate.UnivariateSpline(self.time, self.phase, k=order, s=0)
+        self.time = time_new
+        self.amp = ampoft(time_new)
+        self.phase = phaseoft(time_new)
+
+    def resample_uniform_in_time(self, t_start=None, t_end=None, delta_t=1.0, order=2):
+        """Resample the waveform to be uniform in time.
+        """
+        # Check that t_start and t_end are in the range of self.time
+        if t_start<self.time[0] or t_end>self.time[-1]:
+            raise Exception, 'Start and end times must be in the range of self.time.'
+        if t_start is None: t_start = self.time[0]
+        if t_end is None: t_end = self.time[-1]
+        
+        time_new = np.arange(t_start, t_end, delta_t)
+        self.resample_at_times(time_new, order=order)
+        
+    def resample_uniform_in_phase(self, t_start=None, t_end=None, samples_per_cycle=2.0, order=2):
+        """Resample the waveform to be uniform in phase.
+        The samples_per_cycle is approximate, 
+        so that the first and last cycles are EXACTLY at t_start and t_end.
+        """
+        # Remove points at the end where the phase is decreasing.
+        self.remove_decreasing_phase()
+        
+        # Check that t_start and t_end are in the range of self.time
+        if t_start<self.time[0] or t_end>self.time[-1]:
+            raise Exception, 'Start and end times must be in the range of self.time.'
+        if t_start is None: t_start = self.time[0]
+        if t_end is None: t_end = self.time[-1]
+        
+        # Interpolate time(phase)
+        tofphase = scipy.interpolate.UnivariateSpline(self.phase, self.time, k=order, s=0)
+        ampoft = scipy.interpolate.UnivariateSpline(self.time, self.amp, k=order, s=0)
+        phaseoft = scipy.interpolate.UnivariateSpline(self.time, self.phase, k=order, s=0)
+
+        # Uniform phase samples
+        phi_start = phaseoft(t_start)
+        phi_end = phaseoft(t_end)
+        npoints = int(np.ceil((phi_end - phi_start)*samples_per_cycle/(2.0*np.pi))) + 1
+        self.phase = np.linspace(phi_start, phi_end, npoints)
+        
+        # time, amp samples
+        self.time = tofphase(self.phase)
+        self.time[0] = t_start # Make sure this is exactly as requested (not just approximate)
+        self.time[-1] = t_end # Make sure this is exactly as requested (not just approximate)
+        self.amp = ampoft(self.time)
+
+    # !!!!!!! Deprecated: !!!!!!!
     def resample(self, t_start=None, t_end=None, delta_t=None, samples_per_cycle=None, time_new=None, order=2):
         """Resample the waveform with various methods.
         """
@@ -689,6 +752,14 @@ def inner_product_amp_simps(h1, h2):
     return scipy.integrate.simps(integrand, x=h1.time)
 
 
+def inner_product_amp_samples(h1, h2):
+    """Sum the product of h1 and h2 at each sample.
+    """
+    #check_waveform_consistency(h1, h2)
+    integrand = h1.amp*h2.amp
+    return np.sum( integrand )
+
+
 ################################################################################
 #          Arithmetic for phase of TimeDomainWaveform objects                  #
 #                        (h1+h2, h1-h2, alpha*h, h1.h2)                        #
@@ -738,6 +809,12 @@ def inner_product_phase_simps(h1, h2):
     return scipy.integrate.simps(integrand, x=h1.time)
 
 
+def inner_product_phase_samples(h1, h2):
+    """Sum the product of h1 and h2 at each sample.
+    """
+    #check_waveform_consistency(h1, h2)
+    integrand = h1.phase*h2.phase
+    return np.sum( integrand )
 
 
 
