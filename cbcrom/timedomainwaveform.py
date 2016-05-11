@@ -147,11 +147,13 @@ class TimeDomainWaveform:
         """Resample the waveform to be uniform in time.
         """
         # Check that t_start and t_end are in the range of self.time
-        if t_start<self.time[0] or t_end>self.time[-1]:
-            raise Exception, 'Start and end times must be in the range of self.time.'
+        #if t_start<self.time[0] or t_end>self.time[-1]:
+        #    raise Exception, 'Start and end times must be in the range of self.time.'
         if t_start is None: t_start = self.time[0]
         if t_end is None: t_end = self.time[-1]
-        
+        if t_start<self.time[0] or t_end>self.time[-1]:
+            raise Exception, 'Start and end times must be in the range of self.time.'
+
         time_new = np.arange(t_start, t_end, delta_t)
         self.resample_at_times(time_new, order=order)
         
@@ -164,11 +166,13 @@ class TimeDomainWaveform:
         self.remove_decreasing_phase()
         
         # Check that t_start and t_end are in the range of self.time
-        if t_start<self.time[0] or t_end>self.time[-1]:
-            raise Exception, 'Start and end times must be in the range of self.time.'
+        #if t_start<self.time[0] or t_end>self.time[-1]:
+        #    raise Exception, 'Start and end times must be in the range of self.time.'
         if t_start is None: t_start = self.time[0]
         if t_end is None: t_end = self.time[-1]
-        
+        if t_start<self.time[0] or t_end>self.time[-1]:
+            raise Exception, 'Start and end times must be in the range of self.time.'
+
         # Interpolate time(phase)
         tofphase = scipy.interpolate.UnivariateSpline(self.phase, self.time, k=order, s=0)
         ampoft = scipy.interpolate.UnivariateSpline(self.time, self.amp, k=order, s=0)
