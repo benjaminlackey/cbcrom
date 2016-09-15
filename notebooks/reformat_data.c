@@ -24,8 +24,8 @@ int main(void) {
     fclose(f);
     
     //Read in amplitude matrix as text file and save it as a gsl_matrix binary file
-    int namp = 21;
-    int nt = 69072;
+    int namp = 12;
+    int nt = 73624;
     FILE *f_amp1 = fopen("Bamp_matrix.txt", "r");
     gsl_matrix *m_amp = gsl_matrix_alloc(namp, nt);
     gsl_matrix_fscanf(f_amp1, m_amp);

@@ -94,6 +94,18 @@ def time_amp_phase_from_filename(filename):
 #       Construct the training set as a HDF5TimeDomainWaveformSet              #
 ################################################################################
 
+def truncate_beginning(h, t_trunc):
+    """Truncate the first t_trunc of the waveform.
+    
+    Returns
+    ------
+    h_trunc : TimeDomainWaveform
+    """
+    i_trunc = next(i for i in range(len(h.time)-1) if h.time[i]>=t_trunc)
+    h_trunc = tdwave.TimeDomainWaveform(h.time[i_trunc:], h.amp[i_trunc:], h.phase[i_trunc:])
+    return h_trunc
+
+
 def time_at_max_amp(time, amp):
     """Find the time corresponding to the maximum amplitude.
     This function interpolates between data points using order 2 polynomial,
@@ -262,7 +274,7 @@ def get_eob_training_set(training_set_dir, ts_filename, memb_size=2**31-1, regul
 
 def get_eob_training_set_efficient(training_set_dir, ts_filename, memb_size=2**31-1, regular_grid=False,
                          param_names=['q', 'LambdaA', 'LambdaB'], 
-                         t_transition=-1000.0, samples_per_cycle=100.0, dt=0.1):
+                         t_transition=-1000.0, samples_per_cycle=100.0, dt=0.1, t_trunc=1.0e5):
     """
     Parameters
     ----------
@@ -324,12 +336,14 @@ def get_eob_training_set_efficient(training_set_dir, ts_filename, memb_size=2**3
     tstartlist = []
     tendlist = []
     for i in range(Nwave):
-        if i%100==0: print i,
-        #print i,
+        #if i%100==0: print i,
+        print i,
         # Import waveform.
         filename = file_and_params_sorted[i][0]
         time, amp, phase = time_amp_phase_from_filename(filename)
         h = tdwave.TimeDomainWaveform(time, amp, phase)
+        # Truncate the first t_trunc of the waveform
+        h = truncate_beginning(h, t_trunc)
         # Align at max amplitude.
         tatmax = time_at_max_amp(h.time, h.amp)
         h.time_shift(-tatmax)
