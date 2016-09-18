@@ -1,0 +1,12 @@
+universe = vanilla
+executable = ./run_eobrun.sh
+getenv = True
+
+arguments = /home/bdlackey/MCR_v81/v81 $(La) $(Lb) $(nu) $(q) $(ka2) $(kb2) $(ka3) $(kb3) $(ka4) $(kb4) 
+
+output = $(q)_$(La)_$(Lb).out
+error = $(q)_$(La)_$(Lb).err
+log = $(q)_$(La)_$(Lb).log
+
+accounting_group = sugwg.ben
+queue

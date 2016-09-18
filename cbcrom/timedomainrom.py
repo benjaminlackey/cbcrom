@@ -215,7 +215,7 @@ def reduced_order_model_physical_units(Bamp_j, Bphase_j, amp_function_list, phas
     hcross : array
     """
     ################ Checking for correct input ################
-    if f_lower < 11.0 or f_lower>700.0: raise ValueError('f_lower must be in range [11, 700]Hz')
+    if f_lower < 10.0 or f_lower>700.0: raise ValueError('f_lower must be in range [11, 700]Hz')
     
     if mass1 < 1.0 or mass1 > 2.0 or mass2 < 1.0 or mass2 > 2.0:
         raise ValueError('Valid mass range: mass1 in [1, 2], mass2 in [1, 2]')
