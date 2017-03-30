@@ -13,28 +13,28 @@ void print_vector(gsl_vector *v);
 void print_matrix(gsl_matrix *m, int rows, int cols);
 
 int main(void) {
-    //Find out format of Puerrer's data
-    double mij;
-    int nx = 133;
-    FILE *f = fopen("/home/lppekows/projects/aligo/lal-data/lalsimulation/SEOBNRv2ROM_DS_sub1_Bamp_bin.dat", "rb");
-    gsl_matrix *m = gsl_matrix_alloc(nx, nx);
-    gsl_matrix_fread(f, m);
-    //print_matrix(m, 10, 133);
-    print_matrix(m, 1, 1);
-    fclose(f);
-    
+    // //Find out format of Puerrer's data
+    // double mij;
+    // int nx = 133;
+    // FILE *f = fopen("/home/lppekows/projects/aligo/lal-data/lalsimulation/SEOBNRv2ROM_DS_sub1_Bamp_bin.dat", "rb");
+    // gsl_matrix *m = gsl_matrix_alloc(nx, nx);
+    // gsl_matrix_fread(f, m);
+    // //print_matrix(m, 10, 133);
+    // print_matrix(m, 1, 1);
+    // fclose(f);
+
     //Read in amplitude matrix as text file and save it as a gsl_matrix binary file
     int namp = 12;
     int nt = 73624;
-    FILE *f_amp1 = fopen("Bamp_matrix.txt", "r");
+    FILE *f_amp1 = fopen("../data/Bamp_matrix.txt", "r");
     gsl_matrix *m_amp = gsl_matrix_alloc(namp, nt);
     gsl_matrix_fscanf(f_amp1, m_amp);
 
-    FILE *f_amp2 = fopen("Bamp_matrix.dat", "wb");
+    FILE *f_amp2 = fopen("../data/TEOBResumROM_Bamp_matrix.dat", "wb");
     gsl_matrix_fwrite(f_amp2, m_amp);
     fclose(f_amp2);
 
-    FILE *f_amp3 = fopen("Bamp_matrix.dat", "rb");
+    FILE *f_amp3 = fopen("../data/TEOBResumROM_Bamp_matrix.dat", "rb");
     gsl_matrix *m_amp3 = gsl_matrix_alloc(namp, nt);
     gsl_matrix_fread(f_amp3, m_amp3);
     //print_matrix(m_amp3, 1, nt);
@@ -42,65 +42,65 @@ int main(void) {
 
     //Read in phase matrix as text file and save it as a gsl_matrix binary file
     int nphase = 7;
-    FILE *f_phase1 = fopen("Bphase_matrix.txt", "r");
+    FILE *f_phase1 = fopen("../data/Bphase_matrix.txt", "r");
     gsl_matrix *m_phase = gsl_matrix_alloc(nphase, nt);
     gsl_matrix_fscanf(f_phase1, m_phase);
 
-    FILE *f_phase2 = fopen("Bphase_matrix.dat", "wb");
+    FILE *f_phase2 = fopen("../data/TEOBResumROM_Bphase_matrix.dat", "wb");
     gsl_matrix_fwrite(f_phase2, m_phase);
     fclose(f_phase2);
 
-    FILE *f_phase3 = fopen("Bphase_matrix.dat", "rb");
+    FILE *f_phase3 = fopen("../data/TEOBResumROM_Bphase_matrix.dat", "rb");
     gsl_matrix *m_phase3 = gsl_matrix_alloc(nphase, nt);
     gsl_matrix_fread(f_phase3, m_phase3);
     //print_matrix(m_phase3, 1, nt);
     print_matrix(m_phase3, 1, 5);
-    
-    //Read in times and save it as gsl_vector    
-    FILE *f_t1 = fopen("times.txt", "r");
+
+    //Read in times and save it as gsl_vector
+    FILE *f_t1 = fopen("../data/times.txt", "r");
     gsl_vector *v_t1 = gsl_vector_alloc(nt);
     gsl_vector_fscanf(f_t1, v_t1);
 
-    FILE *f_t2 = fopen("times.dat", "wb");
+    FILE *f_t2 = fopen("../data/TEOBResumROM_times.dat", "wb");
     gsl_vector_fwrite(f_t2, v_t1);
     fclose(f_t2);
 
-    FILE *f_t3 = fopen("times.dat", "rb");
+    FILE *f_t3 = fopen("../data/TEOBResumROM_times.dat", "rb");
     gsl_vector *v_t3 = gsl_vector_alloc(nt);
     gsl_vector_fread(f_t3, v_t3);
     print_vector(v_t3);
 
     //Read in amplitude coefficients and save it as gsl_vector
-    int neta = 16;  
+    int neta = 16;
     int nlam1 = 16;
     int nlam2 = 16;
-    FILE *f_ciamp1 = fopen("Amp_ciall.txt", "r");
+    FILE *f_ciamp1 = fopen("../data/Amp_ciall.txt", "r");
     gsl_vector *v_ciamp1 = gsl_vector_alloc(namp*neta*nlam1*nlam2);
     gsl_vector_fscanf(f_ciamp1, v_ciamp1);
 
-    FILE *f_ciamp2 = fopen("Amp_ciall.dat", "wb");
+    FILE *f_ciamp2 = fopen("../data/TEOBResumROM_Amp_ciall.dat", "wb");
     gsl_vector_fwrite(f_ciamp2, v_ciamp1);
     fclose(f_ciamp2);
 
-    FILE *f_ciamp3 = fopen("Amp_ciall.dat", "rb");
+    FILE *f_ciamp3 = fopen("../data/TEOBResumROM_Amp_ciall.dat", "rb");
     gsl_vector *v_ciamp3 = gsl_vector_alloc(namp*neta*nlam1*nlam2);
     gsl_vector_fread(f_ciamp3, v_ciamp3);
     print_vector(v_ciamp3);
-    
-    //Read in phase coefficients and save it as gsl_vector 
-    FILE *f_ciphase1 = fopen("Phase_ciall.txt", "r");
+
+    //Read in phase coefficients and save it as gsl_vector
+    FILE *f_ciphase1 = fopen("../data/Phase_ciall.txt", "r");
     gsl_vector *v_ciphase1 = gsl_vector_alloc(nphase*neta*nlam1*nlam2);
     gsl_vector_fscanf(f_ciphase1, v_ciphase1);
 
-    FILE *f_ciphase2 = fopen("Phase_ciall.dat", "wb");
+    FILE *f_ciphase2 = fopen("../data/TEOBResumROM_Phase_ciall.dat", "wb");
     gsl_vector_fwrite(f_ciphase2, v_ciphase1);
     fclose(f_ciphase2);
 
-    FILE *f_ciphase3 = fopen("Phase_ciall.dat", "rb");
+    FILE *f_ciphase3 = fopen("../data/TEOBResumROM_Phase_ciall.dat", "rb");
     gsl_vector *v_ciphase3 = gsl_vector_alloc(nphase*neta*nlam1*nlam2);
     gsl_vector_fread(f_ciphase3, v_ciphase3);
     print_vector(v_ciphase3);
- 
+
     return 0;
 }
 
@@ -113,10 +113,10 @@ void print_vector(gsl_vector *v)
   int i;
 
   n = (*v).size;
-  
+
   for (i = 0; i < n; i++){
     printf ("%8g  ", gsl_vector_get (v, i));
-  } 
+  }
   printf("\n\n");
 }
 
@@ -131,15 +131,14 @@ void print_matrix(gsl_matrix *m, int rows, int columns)
 
   //rows = (*m).size1;
   //columns = (*m).size2;
-  
+
   printf("[\n");
   for (i = 0; i < rows; i++){
     printf("[");
-    for (j = 0; j < columns; j++) 
+    for (j = 0; j < columns; j++)
       //printf ("%8g  ", gsl_matrix_get (m, i, j));
       printf ("%.18e  ", gsl_matrix_get (m, i, j));
     printf ("]\n\n");
   }
   printf("]\n\n");
 }
-
